@@ -29,6 +29,9 @@ class AppServiceProvider extends ServiceProvider
 
             if (Auth::check() && Auth::user()->role === 'user') {
                 return Master_info::where('status', 'aktif')
+                    ->whereDoesntHave('readers', function ($q) {
+                        $q->where('user_id', Auth::id());
+                    })
                     ->latest()
                     ->take(5)
                     ->get();
@@ -40,7 +43,11 @@ class AppServiceProvider extends ServiceProvider
         view()->share('notifCount', function () {
 
             if (Auth::check() && Auth::user()->role === 'user') {
-                return Master_info::where('status', 'aktif')->count();
+                return Master_info::where('status', 'aktif')
+                    ->whereDoesntHave('readers', function ($q) {
+                        $q->where('user_id', Auth::id());
+                    })
+                    ->count();
             }
 
             return 0;

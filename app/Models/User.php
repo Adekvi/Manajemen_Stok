@@ -32,6 +32,12 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $casts = [
+        'is_online'     => 'boolean',
+        'is_active'     => 'boolean',
+        'email_verified_at' => 'datetime',
+    ];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -41,8 +47,16 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
+            'is_online'         => 'boolean',
+            'is_active'         => 'boolean',
         ];
+    }
+
+    // LOGIN AUTH
+    public function isActive(): bool
+    {
+        return (bool) $this->is_active;   // pakai (bool) agar lebih aman
     }
 
     public function creator()
@@ -71,5 +85,12 @@ class User extends Authenticatable
         return $this->dataDiri && $this->dataDiri->foto_diri
             ? asset('foto_profile/' . $this->dataDiri->foto_diri)
             : 'https://ui-avatars.com/api/?name=' . urlencode($this->username);
+    }
+
+    public function readInfos()
+    {
+        return $this->belongsToMany(Master_info::class, 'info_user_reads')
+            ->withPivot('read_at')
+            ->withTimestamps();
     }
 }

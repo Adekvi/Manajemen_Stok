@@ -5,7 +5,30 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login!</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome (untuk icon exclamation-triangle) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('asset/css/login.css') }}">
+
+    <style>
+        .modal-content {
+            animation: fadeInScale 0.3s ease;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -15,27 +38,39 @@
             <p>Please enter your credentials to login</p>
         </div>
 
-        <form action="{{ route('auth.login') }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('auth.login') }}" method="POST">
             @csrf
+
             <div class="form-group">
                 <label for="username" class="form-label">Username</label>
                 <input type="text" name="username" id="username"
                     class="form-input @error('username') is-invalid @enderror"
                     value="{{ old('username', Cookie::get('username')) }}" placeholder="Username" required />
                 @error('username')
-                    <span class="invalid-feedback" role="alert">
+                    <span class="invalid-feedback text-danger" role="alert">
                         <strong>{{ $message }}</strong>
                     </span>
                 @enderror
             </div>
 
-            <div class="form-group">
+            <div class="form-group position-relative">
                 <label for="password" class="form-label">Password</label>
-                <input type="password" name="password" id="password"
-                    class="form-input @error('password') is-invalid @enderror" placeholder="Enter your password"
-                    value="{{ old('password', Cookie::get('password')) }}" required />
+
+                <div class="position-relative">
+                    <input type="password" name="password" id="password"
+                        class="form-input pe-5 @error('password') is-invalid @enderror"
+                        value="{{ old('password', Cookie::get('password')) }}" placeholder="Enter your password"
+                        required />
+
+                    <!-- Eye Button -->
+                    <span id="togglePassword" class="position-absolute top-50 end-0 translate-middle-y me-3"
+                        style="cursor: pointer;">
+                        <i class="fas fa-eye text-secondary"></i>
+                    </span>
+                </div>
+
                 @error('password')
-                    <span class="invalid-feedback" role="alert">
+                    <span class="invalid-feedback text-danger d-block" role="alert">
                         <strong>{{ $message }}</strong>
                     </span>
                 @enderror
@@ -43,7 +78,7 @@
 
             <div class="remember-forgot">
                 <div class="remember-me">
-                    <input type="checkbox" id="remember" class="checkbox-input" name="remember"
+                    <input type="checkbox" id="remember" name="remember" value="1"
                         {{ Cookie::has('username') ? 'checked' : '' }} />
                     <label for="remember" class="checkbox-label">Remember me</label>
                 </div>
@@ -79,7 +114,90 @@
                 Don't have an account? <a href="#">Sign up</a>
             </div>
         </form>
+
     </div>
+
+    <!-- Modal Akun Dinonaktifkan -->
+    <div class="modal fade" id="accountDisabledModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+
+                <!-- Header -->
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title d-flex align-items-center gap-2">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Akses Ditolak
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <!-- Body -->
+                <div class="modal-body text-center py-4 px-3">
+                    <div class="mb-3">
+                        <i class="fas fa-user-lock text-danger" style="font-size: 48px;"></i>
+                    </div>
+
+                    <!-- 🔥 HANYA SATU SUMBER PESAN -->
+                    <p id="modalDisabledMessage" class="fw-semibold text-danger mb-2"></p>
+
+                    <small class="text-muted">
+                        Silakan hubungi administrator untuk bantuan lebih lanjut.
+                    </small>
+                </div>
+
+                <!-- Footer -->
+                <div class="modal-footer border-0 justify-content-center pb-4">
+                    <button type="button" class="btn btn-danger px-4 rounded-pill" data-bs-dismiss="modal">
+                        Mengerti
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Toggle password
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('password');
+            const togglePassword = document.getElementById('togglePassword');
+            const icon = togglePassword.querySelector('i');
+
+            togglePassword.addEventListener('click', function() {
+                const isPassword = passwordInput.getAttribute('type') === 'password';
+
+                // Toggle type
+                passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+
+                // Toggle icon
+                icon.classList.toggle('fa-eye');
+                icon.classList.toggle('fa-eye-slash');
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            @if (session('account_disabled') && session('disabled_message'))
+                const modalElement = document.getElementById('accountDisabledModal');
+
+                if (modalElement) {
+                    const modal = new bootstrap.Modal(modalElement);
+
+                    // 🔥 set message dari controller (single source)
+                    document.getElementById('modalDisabledMessage').textContent =
+                        @json(session('disabled_message'));
+
+                    // Delay sedikit biar smooth
+                    setTimeout(() => {
+                        modal.show();
+                    }, 300);
+                }
+            @endif
+        });
+    </script>
+
 </body>
 
 </html>

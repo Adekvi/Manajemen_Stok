@@ -19,12 +19,15 @@ return new class extends Migration
             $table->string('password');
             $table->string('role')->default('user');
             $table->boolean('is_online')->default(false);
+            $table->boolean('is_active')
+                ->default(true)
+                ->comment('true = aktif (boleh login), false = dinonaktifkan admin');
 
             // waktu login logout
             $table->timestamp('last_login')->nullable();
             $table->timestamp('last_logout')->nullable();
 
-            // remember me Laravel
+            // remember me Laravelph
             $table->rememberToken();
             $table->timestamps();
         });

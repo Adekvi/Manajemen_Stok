@@ -1,4 +1,6 @@
-<script src="{{ asset('asset/js/notif.js') }}"></script>
+@if (Auth::check() && Auth::user()->role === 'user')
+    <script src="{{ asset('asset/js/notif.js') }}"></script>
+@endif
 <script src="{{ asset('asset/js/custom.js') }}"></script>
 <script>
     // Header
@@ -42,10 +44,21 @@
                 }
             });
         });
-
-        // =========== Inisialisasi chart (tetap) ===========
-        initializeCharts();
     });
+
+    let chartsInitialized = false;
+
+    const originalInit = window.initializeCharts;
+    if (originalInit) {
+        window.initializeCharts = function() {
+            if (chartsInitialized) {
+                console.warn('initializeCharts sudah dipanggil sebelumnya, di-skip.');
+                return;
+            }
+            chartsInitialized = true;
+            originalInit();
+        };
+    }
 
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
@@ -70,24 +83,110 @@
         document.getElementById('search-modal').classList.remove('flex');
     }
 
+    let searchTimeout = null;
+    let currentController = null;
+
     function handleGlobalSearch(val) {
         const container = document.getElementById('search-results');
-        if (!val) {
-            container.innerHTML = '<div class="text-center py-8 text-secondary text-sm">Ketik sesuatu...</div>';
+
+        if (!val || val.length < 2) {
+            container.innerHTML = `
+                <div class="text-center py-8 text-secondary text-sm">
+                    Ketik minimal 2 karakter...
+                </div>`;
             return;
         }
 
-        // Dummy results based on input
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            doSearch(val);
+        }, 280); // sedikit lebih cepat dari 300ms
+    }
+
+    async function doSearch(val) {
+        const container = document.getElementById('search-results');
+
+        // Cancel request sebelumnya
+        if (currentController) {
+            currentController.abort();
+        }
+        currentController = new AbortController();
+
+        // Tampilkan loading
         container.innerHTML = `
-            <div onclick="closeSearchModal(); switchPage('rooms', document.querySelectorAll('.nav-item')[1])" class="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-all cursor-pointer">
-            <div class="size-10 bg-primary/10 rounded-xl flex items-center justify-center"><i data-lucide="bed-double" class="size-5 text-primary"></i></div>
-            <div class="flex-1"><p class="font-medium">Kamar ${val}</p><p class="text-xs text-secondary">Lihat detail kamar</p></div>
-            </div>
-            <div onclick="closeSearchModal(); switchPage('tenants', document.querySelectorAll('.nav-item')[2])" class="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-all cursor-pointer">
-            <div class="size-10 bg-success/10 rounded-xl flex items-center justify-center"><i data-lucide="user" class="size-5 text-success"></i></div>
-            <div class="flex-1"><p class="font-medium">Penyewa "${val}"</p><p class="text-xs text-secondary">Cari di data penyewa</p></div>
+            <div class="flex flex-col items-center justify-center h-40 w-full gap-2 text-secondary">
+                <i data-lucide="loader" class="size-6 animate-spin text-primary"></i>
+                <span class="text-xs">Mencari data...</span>
             </div>
         `;
         lucide.createIcons();
+
+        try {
+            const res = await fetch(`/menu/search/global?q=${encodeURIComponent(val)}`, {
+                signal: currentController.signal,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!res.ok) throw new Error('Server error');
+
+            const data = await res.json();
+
+            if (!data.success || !data.data || data.data.length === 0) {
+                container.innerHTML = `
+                <div class="text-center py-8 text-secondary text-sm">
+                    Tidak ada hasil ditemukan
+                </div>`;
+                return;
+            }
+
+            const colorMap = {
+                produk: 'text-blue-500 bg-blue-500/10',
+                stok_masuk: 'text-green-500 bg-green-500/10',
+                stok_keluar: 'text-orange-500 bg-orange-500/10',
+            };
+
+            let html = '';
+            data.data.forEach(item => {
+                const color = colorMap[item.type] || 'text-primary bg-primary/10';
+
+                html += `
+                <div onclick="handleSearchResultClick('${item.type}', ${item.id})"
+                     class="flex items-center gap-3 p-3 rounded-xl hover:bg-muted cursor-pointer transition-colors">
+                    <div class="size-10 ${color} rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i data-lucide="${item.icon}" class="size-5"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-medium text-sm truncate">${highlight(item.title)}</p>
+                        <p class="text-xs text-secondary truncate">${item.subtitle}</p>
+                        ${item.meta ? `<p class="text-xs text-secondary mt-1 truncate">${item.meta}</p>` : ''}
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+            lucide.createIcons();
+
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                container.innerHTML = `
+                <div class="text-center py-8 text-error text-sm">
+                    Terjadi kesalahan saat mencari
+                </div>`;
+                console.error(err);
+            }
+        }
+    }
+
+    function highlight(text) {
+        const input = document.getElementById('global-search-input')?.value.trim() || '';
+        if (!input) return text;
+
+        // Escape special regex characters
+        const escaped = input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${escaped})`, 'gi');
+        return text.replace(regex, '<span class="text-primary font-semibold">$1</span>');
     }
 </script>

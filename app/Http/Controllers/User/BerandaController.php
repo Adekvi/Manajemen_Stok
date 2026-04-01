@@ -15,76 +15,20 @@ class BerandaController extends Controller
 {
     public function index(Request $request)
     {
-        $produkAll = Data_produk::where('status', 'aktif')->count();
-        $ttlMasuk = Data_stokmasuk::where('status', 'posted')->count();
-        $ttlKeluar = Data_stokkeluar::where('status', 'posted')->count();
+        $produkAll   = $this->getTotalProduk();
+        $ttlMasuk    = $this->getTotalStokMasuk();
+        $ttlKeluar   = $this->getTotalStokKeluar();
+        $activityTransaksi = $this->getRecentActivities();
 
-        $activityTransaksi = Data_stokkeluar::with(['produk', 'creator.dataDiri'])
-            ->where('created_by', Auth::id()) // pastikan kolom ini ada
-            ->latest()
-            ->take(5)
-            ->get();
+        // Data untuk Chart
+        $attendanceLabels = [];
+        $attendanceData   = [];
+        $attendancePercentage = 0;
+        $productionData   = [];
+        $productionStats  = [];
 
-        /* ==============================
-            ATTENDANCE (STOK KELUAR USER)
-        ============================== */
-        $last7Days = collect(range(0, 6))
-            ->map(fn($i) => Carbon::now()->subDays($i))
-            ->reverse();
-
-        $kartustok = Data_stokkeluar::select(
-            DB::raw('DATE(tanggal_keluar) as tanggal'),
-            DB::raw('COUNT(*) as total')
-        )
-            ->where('created_by', Auth::id())
-            ->where('tanggal_keluar', '>=', Carbon::now()->subDays(6))
-            ->groupBy('tanggal')
-            ->pluck('total', 'tanggal');
-
-        /* LABEL */
-        $attendanceLabels = $last7Days
-            ->map(fn($date) => $date->translatedFormat('D')) // Sen, Sel
-            ->values()
-            ->toArray();
-
-        /* DATA */
-        $attendanceData = $last7Days
-            ->map(fn($date) => (int) ($kartustok[$date->format('Y-m-d')] ?? 0))
-            ->values()
-            ->toArray();
-
-        /* ==============================
-            PERSENTASE (OPSIONAL)
-        ============================== */
-        $totalTransactions = array_sum($attendanceData);
-        $averageDaily = $totalTransactions / 7;
-
-        $targetPerDay = 50; // 🔥 sesuaikan bisnis
-        $attendancePercentage = $targetPerDay > 0
-            ? round(($averageDaily / $targetPerDay) * 100, 1)
-            : 0;
-
-
-        /* ==============================
-            STATUS PRODUKSI (USER)
-        ============================== */
-        $keluar = Data_stokkeluar::select('status', DB::raw('COUNT(*) as total'))
-            ->where('created_by', Auth::id())
-            ->groupBy('status')
-            ->pluck('total', 'status');
-
-        $statuses = ['draft', 'posted', 'cancelled'];
-
-        $productionData = collect($statuses)
-            ->map(fn($status) => (int) ($keluar[$status] ?? 0))
-            ->values()
-            ->toArray();
-
-        $productionStats = [
-            'draft' => $productionData[0],
-            'posted' => $productionData[1],
-            'cancelled' => $productionData[2],
-        ];
+        $this->prepareAttendanceChart($attendanceLabels, $attendanceData, $attendancePercentage);
+        $this->prepareProductionChart($productionData, $productionStats);
 
         if ($request->ajax()) {
             return response()->json([
@@ -103,5 +47,98 @@ class BerandaController extends Controller
             'productionData',
             'productionStats'
         ));
+    }
+
+    // ========================================
+    // PRIVATE METHODS
+    // ========================================
+
+    private function getTotalProduk()
+    {
+        return Data_produk::where('status', 'aktif')->count();
+    }
+
+    private function getTotalStokMasuk()
+    {
+        return Data_stokmasuk::where('status', 'posted')->count();
+    }
+
+    private function getTotalStokKeluar()
+    {
+        return Data_stokkeluar::where('status', 'posted')->count();
+    }
+
+    private function getRecentActivities()
+    {
+        return Data_stokkeluar::with(['produk', 'creator.dataDiri'])
+            ->where('created_by', Auth::id())
+            ->latest()
+            ->take(5)
+            ->get();
+    }
+
+    /**
+     * Persiapkan data untuk Attendance Trend Chart (Line Chart)
+     */
+    private function prepareAttendanceChart(&$attendanceLabels, &$attendanceData, &$attendancePercentage)
+    {
+        $last7Days = collect(range(0, 6))
+            ->map(fn($i) => Carbon::now()->subDays($i))
+            ->reverse();
+
+        // Ambil data stok keluar per tanggal (user sendiri)
+        $kartustok = Data_stokkeluar::select(
+            DB::raw('DATE(tanggal_keluar) as tanggal'),
+            DB::raw('COUNT(*) as total')
+        )
+            ->where('created_by', Auth::id())
+            ->where('tanggal_keluar', '>=', Carbon::now()->subDays(6))
+            ->groupBy('tanggal')
+            ->pluck('total', 'tanggal');
+
+        // Labels (Sen, Sel, Rab, dst)
+        $attendanceLabels = $last7Days
+            ->map(fn($date) => $date->translatedFormat('D'))
+            ->values()
+            ->toArray();
+
+        // Data jumlah transaksi per hari
+        $attendanceData = $last7Days
+            ->map(fn($date) => (int) ($kartustok[$date->format('Y-m-d')] ?? 0))
+            ->values()
+            ->toArray();
+
+        // Hitung persentase attendance (opsional)
+        $totalTransactions = array_sum($attendanceData);
+        $averageDaily      = $totalTransactions / 7;
+        $targetPerDay      = 50; // sesuaikan dengan target bisnis kamu
+
+        $attendancePercentage = $targetPerDay > 0
+            ? round(($averageDaily / $targetPerDay) * 100, 1)
+            : 0;
+    }
+
+    /**
+     * Persiapkan data untuk Status Stok Keluar (Doughnut Chart)
+     */
+    private function prepareProductionChart(&$productionData, &$productionStats)
+    {
+        $keluar = Data_stokkeluar::select('status', DB::raw('COUNT(*) as total'))
+            ->where('created_by', Auth::id())
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $statuses = ['draft', 'posted', 'cancelled'];
+
+        $productionData = collect($statuses)
+            ->map(fn($status) => (int) ($keluar[$status] ?? 0))
+            ->values()
+            ->toArray();
+
+        $productionStats = [
+            'draft'     => $productionData[0] ?? 0,
+            'posted'    => $productionData[1] ?? 0,
+            'cancelled' => $productionData[2] ?? 0,
+        ];
     }
 }

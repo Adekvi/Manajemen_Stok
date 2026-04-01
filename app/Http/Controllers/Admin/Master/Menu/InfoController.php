@@ -41,6 +41,8 @@ class InfoController extends Controller
             ]);
         }
 
+        // dd($info);
+
         return view('admin.master.lain.info', compact('info'));
     }
 
@@ -49,12 +51,14 @@ class InfoController extends Controller
         $request->validate([
             'judul' => 'nullable|string',
             'tgl' => 'nullable|date',
+            'konten' => 'nullable',
             'status' => 'nullable|in:aktif,nonaktif'
         ]);
 
         Master_info::create([
             'judul' => $request->judul,
             'tgl' => $request->tgl,
+            'konten' => $request->konten,
             'status' => $request->status ?? 'aktif'
         ]);
 
@@ -75,6 +79,7 @@ class InfoController extends Controller
         $request->validate([
             'judul' => 'nullable|string',
             'tgl' => 'nullable|date',
+            'konten' => 'nullable',
             'status' => 'nullable|in:aktif,nonaktif'
         ]);
 
@@ -83,6 +88,7 @@ class InfoController extends Controller
         $data->update([
             'judul' => $request->judul,
             'tgl' => $request->tgl,
+            'konten' => $request->konten,
             'status' => $request->status
         ]);
 

@@ -114,27 +114,9 @@
 
             <!-- LIST -->
             <div id="panel-list" class="flex-1 overflow-y-auto">
-
-                @foreach ($notifs as $notif)
-                    <div class="panel-item px-4 py-4 border-b border-border cursor-pointer hover:bg-muted"
-                        data-judul="{{ $notif->judul }}" data-deskripsi="{{ $notif->deskripsi }}"
-                        data-tgl="{{ $notif->tgl }}">
-
-                        <p class="text-sm font-semibold text-foreground">
-                            {{ $notif->judul }}
-                        </p>
-
-                        <p class="text-xs text-secondary mt-1">
-                            {{ \Illuminate\Support\Str::limit($notif->deskripsi, 60) }}
-                        </p>
-
-                        <span class="text-[10px] text-secondary">
-                            {{ \Carbon\Carbon::parse($notif->tgl)->format('d M Y H:i') }}
-                        </span>
-
-                    </div>
-                @endforeach
-
+                <div class="px-4 py-6 text-center text-xs text-secondary">
+                    Memuat notifikasi...
+                </div>
             </div>
         </div>
 

@@ -14,13 +14,15 @@ use App\Http\Controllers\Admin\User\PenggunaController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\User\BerandaController;
+use App\Http\Controllers\User\NotifikasiController;
 use App\Http\Controllers\User\Produk\PackageController;
 use App\Http\Controllers\User\Stok\BrgKeluarController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'idle'])->group(function () {
+Route::middleware(['auth', 'idle', 'active'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
@@ -33,9 +35,11 @@ Route::prefix('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('auth.logout');
 });
 
-Route::middleware(['auth', 'idle'])->prefix('menu')->group(function () {
+Route::middleware(['auth', 'idle', 'active'])->prefix('menu')->group(function () {
     Route::get('/setting', [SettingController::class, 'index'])->name('menu.setting');
     Route::post('/setting-update', [SettingController::class, 'update'])->name('menu.update');
+
+    Route::get('/search/global', [SearchController::class, 'global'])->name('search.global');
 });
 
 // Admin
@@ -138,12 +142,18 @@ Route::middleware(['auth', 'idle', 'role:admin'])->prefix('admin')->group(functi
             ->name('admin.info-hapus');
     });
 
-    Route::get('/pengguna', [PenggunaController::class, 'index'])
-        ->name('admin.pengguna');
+    Route::prefix('/pengguna')->group(function () {
+        Route::get('/view', [PenggunaController::class, 'index'])
+            ->name('admin.pengguna');
+        Route::post('/tambah', [PenggunaController::class, 'store'])->name('pengguna.store');
+        Route::put('/edit/{id}', [PenggunaController::class, 'edit'])->name('pengguna.edit');
+        Route::get('/show/{id}', [PenggunaController::class, 'show'])->name('pengguna.show');
+        Route::put('/status/{id}', [PenggunaController::class, 'status'])->name('pengguna.status');
+    });
 });
 
 // User
-Route::middleware(['auth', 'idle', 'role:user'])->prefix('user')->group(function () {
+Route::middleware(['auth', 'idle', 'active', 'role:user'])->prefix('user')->group(function () {
 
     Route::get('/dashboard', [BerandaController::class, 'index'])
         ->name('user.dashboard');
@@ -168,5 +178,14 @@ Route::middleware(['auth', 'idle', 'role:user'])->prefix('user')->group(function
             ->name('user.keluar.edit');
 
         Route::put('/stok-status/keluar/{id}', [BrgKeluarController::class, 'updateStatus'])->name('user.status.keluar');
+    });
+
+    Route::prefix('/info')->group(function () {
+        // All notifikasi
+        Route::get('/notifikasi/all', [NotifikasiController::class, 'all']);
+        // Notifikasi terbaru
+        Route::get('/notifikasi', [NotifikasiController::class, 'index']);
+        Route::post('/notifikasi/read/{id}', [NotifikasiController::class, 'read']);
+        Route::post('/notifikasi/read-all', [NotifikasiController::class, 'readAll']);
     });
 });

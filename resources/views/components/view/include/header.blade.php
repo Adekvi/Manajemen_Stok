@@ -22,9 +22,6 @@
                     aria-label="Notifications">
 
                     <i data-lucide="bell" class="size-6 text-secondary"></i>
-                    {{-- <span id="notif-count"
-                        class="absolute -top-1 -right-1 h-5 px-1.5 rounded-full bg-error text-white text-xs font-medium flex items-center justify-center">
-                    </span> --}}
                 </button>
             @elseif (Auth::user()->role == 'user')
                 {{-- NOTIFIKASI --}}
@@ -34,14 +31,9 @@
 
                     <i data-lucide="bell" class="size-6 text-secondary"></i>
 
-                    @php
-                        $notifs = $notifs();
-                        $notifCount = $notifCount();
-                    @endphp
-
+                    {{-- badge dikosongkan, nanti diisi JS --}}
                     <span id="notif-count"
-                        class="absolute -top-1 -right-1 h-5 px-1.5 rounded-full bg-error text-white text-xs font-medium flex items-center justify-center">
-                        {{ $notifCount > 0 ? $notifCount : '' }}
+                        class="hidden absolute -top-1 -right-1 h-5 px-1.5 rounded-full bg-error text-white text-xs font-medium flex items-center justify-center">
                     </span>
                 </button>
 
@@ -60,30 +52,9 @@
 
                     <!-- LIST -->
                     <div id="notif-list" class="max-h-80 overflow-y-auto">
-
-                        @forelse ($notifs as $notif)
-                            <div class="notif-item px-4 py-3 hover:bg-muted cursor-pointer transition border-b border-border/50"
-                                data-id="{{ $notif->id }}" data-judul="{{ $notif->judul }}"
-                                data-deskripsi="{{ $notif->deskripsi }}" data-tgl="{{ $notif->tgl }}">
-
-                                <p class="text-sm font-medium text-foreground">
-                                    {{ $notif->judul }}
-                                </p>
-
-                                <p class="text-xs text-secondary">
-                                    {{ \Illuminate\Support\Str::limit($notif->deskripsi, 50) }}
-                                </p>
-
-                                <span class="text-[10px] text-secondary">
-                                    {{ \Carbon\Carbon::parse($notif->tgl)->diffForHumans() }}
-                                </span>
-                            </div>
-                        @empty
-                            <div class="px-4 py-6 text-center text-xs text-secondary">
-                                Tidak ada notifikasi
-                            </div>
-                        @endforelse
-
+                        <div class="px-4 py-6 text-center text-xs text-secondary">
+                            Memuat notifikasi...
+                        </div>
                     </div>
 
                     <!-- FOOTER -->

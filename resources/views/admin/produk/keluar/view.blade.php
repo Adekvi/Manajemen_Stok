@@ -3,7 +3,7 @@
     <div id="view-stok-list" class="view-section hidden flex flex-col flex-1 h-full overflow-y-auto">
 
         <div class="flex items-center gap-2 mb-6 text-sm text-secondary">
-            <a href="{{ route('dashboard') }}" onclick="switchView('dashboard')"
+            <a href="{{ route('admin.dashboard') }}" onclick="switchView('dashboard')"
                 class="hover:text-primary transition-colors">Dashboard</a>
             <i data-lucide="chevron-right" class="size-4"></i>
             <span class="font-medium text-foreground">Stok Keluar</span>
@@ -150,93 +150,8 @@
                             </tr>
                         </thead>
                         <!-- BODY -->
-                        <tbody class="divide-y divide-border">
-                            @forelse ($recentTransaksi as $kel)
-                                <tr class="hover:bg-muted/30 transition">
-                                    <!-- WAKTU -->
-                                    <td class="p-4 pl-6 text-foreground">
-                                        <div class="flex flex-col leading-tight">
-                                            <span class="font-medium">
-                                                {{ $kel->created_at->format('d M Y') }}
-                                            </span>
-                                            <span class="text-xs text-secondary">
-                                                {{ $kel->created_at->format('H:i') }}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <!-- USER -->
-                                    <td class="p-4">
-                                        <div class="flex items-center gap-3">
-                                            <div
-                                                class="size-9 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
-                                                @if ($kel->creator && $kel->creator->dataDiri && $kel->creator->dataDiri->foto_diri)
-                                                    <img src="{{ asset('foto_profile/' . $kel->creator->dataDiri->foto_diri) }}"
-                                                        class="size-9 rounded-full object-cover">
-                                                @else
-                                                    {{ $kel->creator ? strtoupper(substr($kel->creator->username, 0, 2)) : 'AD' }}
-                                                @endif
-                                            </div>
-                                            <div class="flex flex-col leading-tight">
-                                                <span class="font-medium text-foreground">
-                                                    {{ $kel->creator->username }}
-                                                </span>
-                                                <span class="text-xs text-secondary">
-                                                    User
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <!-- AKTIVITAS -->
-                                    <td class="p-4">
-                                        <span class="text-secondary">Mengeluarkan</span>
-                                        <span class="font-semibold text-foreground">
-                                            {{ $kel->jumlah }}
-                                        </span>
-                                        <span class="text-secondary">produk</span>
-                                        <span class="font-medium text-primary">
-                                            {{ $kel->produk->nama_produk }}
-                                        </span>
-                                    </td>
-                                    <!-- STATUS -->
-                                    <td class="p-4">
-                                        @if ($kel->status == 'posted')
-                                            <span
-                                                class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-600">
-                                                <i data-lucide="check-circle" class="size-4"></i>
-                                                Posted
-                                            </span>
-                                        @elseif ($kel->status == 'cancelled')
-                                            <span
-                                                class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-600">
-                                                <i data-lucide="x-circle" class="size-4"></i>
-                                                Cancelled
-                                            </span>
-                                        @else
-                                            <span
-                                                class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                                                <i data-lucide="clock" class="size-4"></i>
-                                                Draft
-                                            </span>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @empty
-                                <!-- EMPTY STATE -->
-                                <tr>
-                                    <td colspan="4" class="p-10 text-center">
-                                        <div class="flex flex-col items-center justify-center gap-3 text-secondary">
-                                            <div
-                                                class="size-14 rounded-full bg-muted flex items-center justify-center">
-                                                <i data-lucide="inbox" class="size-6"></i>
-                                            </div>
-                                            <div class="text-sm">
-                                                <p class="font-medium text-foreground">Belum ada data</p>
-                                                <p class="text-xs">Transaksi stok keluar akan muncul di sini</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforelse
+                        <tbody class="divide-y divide-border" id="activityTable" data-url="{{ url()->current() }}">
+                            @include('admin.produk.keluar.activity')
                         </tbody>
                     </table>
                 </div>
@@ -338,14 +253,14 @@
                                         <label class="text-xs font-medium text-secondary uppercase tracking-wide">
                                             Status
                                         </label>
-                                        <input type="hidden" name="status" id="edit-status">
-                                        {{-- <select name="status" id="edit-status"
+                                        <select name="status" id="edit-status"
                                             class="appearance-none w-full h-11 px-4 pr-10 border border-border rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none cursor-pointer">
+
                                             <option value="">-- Status --</option>
-                                            <option value="draft" selected>Draft</option>
+                                            <option value="draft">Draft</option>
                                             <option value="posted">Posted</option>
                                             <option value="cancelled">Cancelled</option>
-                                        </select> --}}
+                                        </select>
                                         <i data-lucide="chevron-down"
                                             class="absolute right-3 top-[36px] size-4 text-secondary pointer-events-none"></i>
                                     </div>
@@ -387,7 +302,7 @@
                                     <label class="text-xs font-medium text-secondary uppercase tracking-wide">
                                         Deskripsi
                                     </label>
-                                    <textarea rows="4" name="keterangan" placeholder="Tuliskan keterangan jika ada..."
+                                    <textarea rows="4" id="edit-keterangan" name="keterangan" placeholder="Tuliskan keterangan jika ada..."
                                         class="w-full px-4 py-3 border border-border rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none resize-none transition"></textarea>
                                 </div>
                             </div>
@@ -554,8 +469,8 @@
                                 Deskripsi Produk
                             </p>
 
-                            <div id="detail-deskripsi"
-                                class="p-5 border border-border rounded-xl text-sm text-foreground leading-relaxed">
+                            <div id="detail-desk"
+                                class="p-5 border border-border font-semibold rounded-xl text-sm text-foreground leading-relaxed">
                             </div>
                         </div>
                     </div>
@@ -595,7 +510,7 @@
     {{-- modal --}}
     <div id="status-modal"
         class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-black/30 backdrop-blur-sm transition-opacity">
-        <div class="w-full max-w-md rounded-3xl border border-border dark:bg-neutral-900 shadow-2xl transform transition-all scale-95 opacity-0"
+        <div class="w-full max-w-md rounded-3xl border border-border bg-white/95 backdrop-blur dark:bg-neutral-900 shadow-xl transform transition-all scale-95 opacity-0"
             id="status-modal-card">
             <!-- HEADER -->
             <div class="p-6 border-b border-border flex items-center justify-between">
@@ -1103,12 +1018,14 @@
                         document.getElementById("data-harga").innerText =
                             formatRupiah(data.produk?.harga);
 
+                        document.getElementById('edit-keterangan').value = data.keterangan;
+
                         const img = document.getElementById("data-image");
 
                         if (data.produk?.foto_produk) {
                             img.src = "/produk/" + data.produk.foto_produk;
                         } else {
-                            img.src = "https://via.placeholder.com/400x400?text=No+Image";
+                            img.src = "/asset/image/no-image.jpg";
                         }
 
                         statusEl.innerText =
@@ -1299,7 +1216,7 @@
                         document.getElementById("detail-kategori").innerText =
                             data.produk?.kategori ?? "-";
 
-                        document.getElementById("detail-deskripsi").innerText =
+                        document.getElementById("detail-desk").innerText =
                             data.keterangan ?? "-";
 
                         if (data.produk?.foto_produk) {
@@ -1324,7 +1241,7 @@
                             creatorName !== "-" ? creatorName.substring(0, 2).toUpperCase() : "--";
 
                         // POSTER
-                        const posterName = data.poster?.username ?? "Belum diposting";
+                        const posterName = data.poster?.username ?? "Admin";
                         document.getElementById("detail-poster").innerText = posterName;
 
                         document.getElementById("detail-poster-avatar").innerText =
@@ -1534,6 +1451,125 @@
                 btn.disabled = false;
 
             }
+
+            // AUTO RELOAD
+            let lastStokHTML = '';
+            let lastActivityHTML = '';
+            let refreshInterval = null;
+
+            function loadStokKeluar(page = 1) {
+                const search = document.getElementById('produkSearch')?.value || '';
+                fetch(`?page=${page}&search=${encodeURIComponent(search)}&type=stok`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        const tableBody = document.getElementById('stokTable');
+                        if (!tableBody) return;
+
+                        if (data.empty) {
+                            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center py-10 text-secondary">
+                        <div class="flex flex-col items-center gap-2">
+                            <i data-lucide="search-x" class="w-8 h-8"></i>
+                            <span>Data tidak ditemukan</span>
+                        </div>
+                    </td>
+                </tr>`;
+                        } else if (data.html && lastStokHTML !== data.html) {
+                            tableBody.innerHTML = data.html;
+                            lastStokHTML = data.html;
+                            animateRows('#stokTable tr');
+                        }
+                        lucide.createIcons();
+                    })
+                    .catch(err => console.error('Stok load error:', err));
+            }
+
+            function loadActivity() {
+                const activityTable = document.getElementById('activityTable');
+                if (!activityTable) return;
+
+                const url = activityTable.dataset.url || window.location.href;
+
+                fetch(`${url}?type=activity`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.html) return;
+
+                        if (lastActivityHTML !== data.html) {
+                            activityTable.innerHTML = data.html;
+                            lastActivityHTML = data.html;
+                            animateRows('#activityTable tr');
+                        }
+                        lucide.createIcons();
+                    })
+                    .catch(err => console.error('Activity load error:', err));
+            }
+
+            function animateRows(selector) {
+                const rows = document.querySelectorAll(selector);
+                rows.forEach((row, index) => {
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateY(8px)';
+                    setTimeout(() => {
+                        row.style.transition = 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
+                        row.style.opacity = '1';
+                        row.style.transform = 'translateY(0)';
+                    }, index * 35);
+                });
+            }
+
+            // Satu interval untuk kedua tabel
+            function startAutoRefresh() {
+                if (refreshInterval) clearInterval(refreshInterval);
+
+                refreshInterval = setInterval(() => {
+                    loadStokKeluar();
+                    loadActivity();
+                }, 5000); // 5 detik
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                // Inisialisasi pertama
+                loadStokKeluar();
+                loadActivity();
+
+                // Mulai auto refresh
+                startAutoRefresh();
+
+                // Handle pagination (sudah ada di kode kamu)
+                document.addEventListener('click', e => {
+                    const link = e.target.closest('.pagination a');
+                    if (link) {
+                        e.preventDefault();
+                        const url = new URL(link.href);
+                        const page = url.searchParams.get('page');
+                        if (page) loadStokKeluar(page);
+                    }
+                });
+
+                // Stop interval saat tab tidak aktif (hemat resource)
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) {
+                        if (refreshInterval) clearInterval(refreshInterval);
+                    } else {
+                        startAutoRefresh();
+                        // Refresh sekali saat kembali ke tab
+                        loadStokKeluar();
+                        loadActivity();
+                    }
+                });
+            });
         </script>
     @endpush
 

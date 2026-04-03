@@ -3,7 +3,7 @@
     <div id="view-users" class="page-section">
 
         <div class="flex items-center gap-2 mb-6 text-sm text-secondary">
-            <a href="{{ route('dashboard') }}" onclick="switchView('dashboard')"
+            <a href="{{ route('admin.dashboard') }}" onclick="switchView('dashboard')"
                 class="hover:text-primary transition-colors">Dashboard</a>
             <i data-lucide="chevron-right" class="size-4"></i>
             <span class="font-medium text-foreground">Pengguna</span>

@@ -31,7 +31,9 @@
 
         <!-- SETTINGS PANEL -->
         <div id="theme-panel"
-            class="fixed inset-y-0 right-0 w-[280px] sm:w-[300px] lg:w-[320px] bg-white/95 backdrop-blur-xl border-l border-gray-200 shadow-2xl z-[1000] transform translate-x-full transition-transform duration-500 ease-out">
+            class="fixed inset-y-0 right-0 w-[280px] sm:w-[300px] lg:w-[320px] 
+            bg-white/95 backdrop-blur-xl border-l border-gray-200 shadow-2xl 
+            z-[95] transform translate-x-full transition-transform duration-500 ease-out">
 
             <!-- HEADER -->
             <div class="flex items-center justify-between px-7 py-6 border-b border-gray-100">
@@ -99,7 +101,6 @@
 
         </div>
 
-        <!-- NOTIFIKASI -->
         {{-- PANEL NOTIF --}}
         <div id="notif-panel"
             class="fixed top-0 right-0 h-full w-[380px] bg-[var(--body-bg)] border-l border-border shadow-2xl transform translate-x-full transition duration-300 z-[9999] flex flex-col">
@@ -140,8 +141,9 @@
         <!-- MAIN CONTENT -->
         <main class="flex-1 lg:ml-[280px] flex flex-col min-h-screen overflow-x-hidden transition-colors duration-300"
             style="background-color: var(--body-bg);">
+
             <!-- Top Header Bar -->
-            <x-view.include.header />
+            <x-view.include.header :title="$title" />
 
             <!-- Page Content Area -->
             <div class="flex-1 overflow-y-auto p-5 md:p-8" style="background-color: var(--body-bg);">

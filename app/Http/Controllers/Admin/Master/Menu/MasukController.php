@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin\Master\Data_stokmasuk;
 use App\Models\Data_produk;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class MasukController extends Controller
 {
@@ -40,6 +41,8 @@ class MasukController extends Controller
             ]);
         }
 
+        // dd($masuk);
+
         return view('admin.produk.masuk.stok', compact('masuk', 'produks'));
     }
 
@@ -47,6 +50,10 @@ class MasukController extends Controller
     {
         $item = Data_stokmasuk::with('produk:id,nama_produk,kode_produk,harga,kategori,satuan,foto_produk,status')
             ->findOrFail($id);
+
+        // Debug
+        Log::info('Data Stok Masuk Detail:', $item->toArray());
+
         return response()->json($item);
     }
 

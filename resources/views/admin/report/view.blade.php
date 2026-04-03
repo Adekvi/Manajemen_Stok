@@ -3,7 +3,7 @@
     <div id="view-reports" class="page-section">
 
         <div class="flex items-center gap-2 mb-6 text-sm text-secondary">
-            <a href="{{ route('dashboard') }}" onclick="switchView('dashboard')"
+            <a href="{{ route('admin.dashboard') }}" onclick="switchView('dashboard')"
                 class="hover:text-primary transition-colors">Dashboard</a>
             <i data-lucide="chevron-right" class="size-4"></i>
             <span class="font-medium text-foreground">Reports</span>
@@ -54,8 +54,10 @@
                             </th>
 
                             <th rowspan="2" class="p-4 text-sm text-secondary">Total Stok</th>
-                            <th rowspan="2" class="p-4 text-sm text-secondary">Stok Masuk</th>
-                            <th rowspan="2" class="p-4 text-sm text-secondary">Stok Keluar</th>
+
+                            <th colspan="2" class="p-4 text-sm text-secondary">
+                                Total Stok
+                            </th>
                             <th rowspan="2" class="p-4 text-sm text-secondary">Total Uang</th>
                             <th rowspan="2" class="p-4 text-sm text-secondary">Status</th>
                         </tr>
@@ -63,6 +65,8 @@
                         <tr>
                             <th class="p-3 text-xs text-success">Transaksi Masuk</th>
                             <th class="p-3 text-xs text-error">Transaksi Keluar</th>
+                            <th class="p-3 text-sm text-secondary">Stok Masuk</th>
+                            <th class="p-3 text-sm text-secondary">Stok Keluar</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -88,18 +92,15 @@
                                     </span>
                                 </td>
 
-                                <!-- TOTAL STOK -->
-                                <td class="p-4 text-primary font-semibold">
+                                <td class="p-4 text-center align-middle text-primary font-semibold">
                                     {{ number_format($totalStok) }}
                                 </td>
 
-                                <!-- MASUK -->
-                                <td class="p-4 text-success font-medium">
+                                <td class="p-4 text-center align-middle text-success font-medium">
                                     +{{ number_format($row->total_masuk) }}
                                 </td>
 
-                                <!-- KELUAR -->
-                                <td class="p-4 text-error font-medium">
+                                <td class="p-4 text-center align-middle text-error font-medium">
                                     -{{ number_format($row->total_keluar) }}
                                 </td>
 

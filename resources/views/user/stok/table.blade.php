@@ -86,12 +86,6 @@
                         title="Edit">
                         <i data-lucide="pencil" class="size-4"></i>
                     </button>
-                    <!-- DELETE -->
-                    <button onclick="deleteData({{ $item->id }})"
-                        class="p-2 text-secondary hover:text-error hover:bg-error/5 rounded-lg transition-colors"
-                        title="Hapus">
-                        <i data-lucide="trash-2" class="size-4"></i>
-                    </button>
                 </div>
             </td>
         </tr>

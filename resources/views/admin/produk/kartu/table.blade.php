@@ -146,7 +146,7 @@
             {{-- ACTION --}}
             <td class="px-6 py-4 text-right">
                 <button onclick="openDetailKartu({{ $item->id }})"
-                    class="px-3 py-1.5 border border-border rounded-lg text-xs font-bold hover:bg-primary hover:text-white hover:border-primary transition-colors cursor-pointer flex items-center gap-1">
+                    class="px-3 py-1.5 border border-border rounded-lg text-xs font-semibold hover:bg-primary hover:text-white hover:border-primary transition-colors cursor-pointer flex items-center gap-1">
 
                     <i data-lucide="eye" class="size-4"></i>
                     Detail

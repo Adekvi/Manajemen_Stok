@@ -16,7 +16,6 @@ class KeluarController extends Controller
 
         if ($request->has('search') && $request->search) {
             $search = $request->search;
-
             $query->where(function ($q) use ($search) {
                 $q->where('jumlah', 'like', "%$search%")
                     ->orWhere('tanggal_keluar', 'like', "%$search%")
@@ -29,23 +28,38 @@ class KeluarController extends Controller
 
         $keluar = $query->paginate(10)->withQueryString();
 
-        // dd($keluar);
-
         $produks = Data_produk::orderBy('nama_produk')->get();
 
-        if ($request->ajax()) {
-            $table = view('admin.produk.keluar.table', compact('keluar'))->render();
+        $recentTransaksi = Data_stokkeluar::with('produk', 'creator.dataDiri', 'poster') // tambah poster kalau perlu
+            ->latest()
+            ->take(10) // sesuaikan jumlah yang ingin ditampilkan
+            ->get();
 
+        if ($request->ajax()) {
+            // Request dari stok table
+            if ($request->has('type') && $request->type === 'stok') {
+                $table = view('admin.produk.keluar.table', compact('keluar'))->render();
+                return response()->json([
+                    'html' => $table,
+                    'empty' => $keluar->isEmpty()
+                ]);
+            }
+
+            // Request dari activity table (baru)
+            if ($request->has('type') && $request->type === 'activity') {
+                $activityHtml = view('admin.produk.keluar.activity', compact('recentTransaksi'))->render();
+                return response()->json([
+                    'html' => $activityHtml
+                ]);
+            }
+
+            // Default (stok)
+            $table = view('admin.produk.keluar.table', compact('keluar'))->render();
             return response()->json([
                 'html' => $table,
-                'empty' => $keluar->count() === 0
+                'empty' => $keluar->isEmpty()
             ]);
         }
-
-        $recentTransaksi = Data_stokkeluar::with('produk', 'creator')
-            ->latest()
-            ->take(5)
-            ->get();
 
         return view('admin.produk.keluar.view', compact('keluar', 'produks', 'recentTransaksi'));
     }

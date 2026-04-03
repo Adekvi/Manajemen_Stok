@@ -29,10 +29,51 @@ class DashboardController extends Controller
 
     private function getStats(): array
     {
+        // =========================
+        // TOTAL
+        // =========================
+        $produkAll = Data_produk::where('status', 'aktif')->count();
+        $ttlMasuk = Data_stokmasuk::where('status', 'posted')->count();
+        $ttlKeluar = Data_stokkeluar::where('status', 'posted')->count();
+        $stokCancel = Data_stokkeluar::where('status', 'cancelled')->count();
+
+        // =========================
+        // HARI INI
+        // =========================
+        $produkHariini = Data_produk::whereDate('created_at', Carbon::today())->count();
+
+        $stokMasukHariIni = Data_stokmasuk::where('status', 'posted')
+            ->whereDate('tanggal_masuk', Carbon::today())
+            ->count();
+
+        $stokKeluarHariIni = Data_stokkeluar::where('status', 'posted')
+            ->whereDate('tanggal_keluar', Carbon::today())
+            ->count();
+
+        // =========================
+        // KEMARIN (UNTUK PERSENTASE)
+        // =========================
+        $produkKemarin = Data_produk::whereDate('created_at', Carbon::yesterday())->count();
+
+        // =========================
+        // HITUNG PERSENTASE PRODUK
+        // =========================
+        $persenProduk = $produkKemarin > 0
+            ? round((($produkHariini - $produkKemarin) / $produkKemarin) * 100, 1)
+            : 0;
+
         return [
-            'produkAll' => Data_produk::where('status', 'aktif')->count(),
-            'ttlMasuk' => Data_stokmasuk::where('status', 'posted')->count(),
-            'ttlKeluar' => Data_stokkeluar::where('status', 'posted')->count(),
+            'produkAll' => $produkAll,
+            'ttlMasuk' => $ttlMasuk,
+            'ttlKeluar' => $ttlKeluar,
+            'stokCancel' => $stokCancel,
+
+            'produkHariini' => $produkHariini,
+            'stokMasukHariIni' => $stokMasukHariIni,
+            'stokKeluarHariIni' => $stokKeluarHariIni,
+
+            // persen
+            'persenProduk' => $persenProduk,
         ];
     }
 

@@ -162,8 +162,8 @@
                             <div class="md:col-span-2">
                                 <p class="text-xs text-secondary font-medium uppercase tracking-wider mb-2">
                                     Deskripsi Produk</p>
-                                <div id="detail-deskripsi"
-                                    class="p-5 border border-border rounded-xl text-sm text-foreground leading-relaxed">
+                                <div id="detail-des"
+                                    class="p-5 border border-border font-semibold rounded-xl text-sm text-foreground leading-relaxed">
                                     <p class="mb-3"></p>
                                 </div>
                             </div>
@@ -389,13 +389,13 @@
                         document.getElementById("detail-harga").innerText =
                             "Rp " + Number(data.harga || 0).toLocaleString('id-ID');
 
-                        document.getElementById("detail-deskripsi").innerText =
+                        document.getElementById("detail-des").innerText =
                             data.keterangan ?? "-";
 
                         if (data.foto_produk) {
                             img.src = "/produk/" + data.foto_produk;
                         } else {
-                            img.src = "https://via.placeholder.com/400x400?text=No+Image";
+                            img.src = "/asset/image/no-image.jpg";
                         }
 
                         statusEl.innerText =

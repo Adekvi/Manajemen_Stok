@@ -160,9 +160,10 @@
                                         class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                                     <div
                                         class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                        <button
-                                            class="size-10 flex items-center justify-center  rounded-xl hover:bg-gray-100 cursor-pointer shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300"><i
-                                                data-lucide="eye" class="size-5 text-gray-700"></i></button>
+                                        <button type="button" onclick="previewImage()"
+                                            class="size-10 flex items-center justify-center rounded-xl hover:bg-gray-100 cursor-pointer shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
+                                            <i data-lucide="eye" class="size-5 text-gray-700"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 <h3 id="data-nama" class="font-bold text-xl text-center mb-1 text-foreground"></h3>
@@ -271,7 +272,7 @@
                                     <label class="text-xs font-medium text-secondary uppercase tracking-wide">
                                         Deskripsi
                                     </label>
-                                    <textarea rows="4" name="keterangan" placeholder="Tuliskan keterangan jika ada..."
+                                    <textarea rows="4" id="edit-ket" name="keterangan" placeholder="Tuliskan keterangan jika ada..."
                                         class="w-full px-4 py-3 border border-border rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none resize-none transition"></textarea>
                                 </div>
                             </div>
@@ -413,8 +414,8 @@
                                 Deskripsi Produk
                             </p>
 
-                            <div id="detail-deskripsi"
-                                class="p-5 border border-border rounded-xl text-sm text-foreground leading-relaxed">
+                            <div id="detail-ktr"
+                                class="p-5 border border-border font-semibold rounded-xl text-sm text-foreground leading-relaxed">
                             </div>
                         </div>
                     </div>
@@ -754,7 +755,7 @@
                         if (selectedProduk.foto_produk) {
                             img.src = "/produk/" + selectedProduk.foto_produk;
                         } else {
-                            img.src = "https://via.placeholder.com/400x400?text=No+Image";
+                            img.src = "/asset/image/no-image.jpg";
                         }
 
                         switchView("edit");
@@ -956,6 +957,7 @@
                         document.getElementById('edit-tgl').value = data.tanggal_keluar;
                         document.getElementById('edit-jumlah').value = data.jumlah;
                         document.getElementById('edit-status').value = data.status;
+                        document.getElementById('edit-ket').value = data.keterangan;
 
                         document.getElementById("data-nama").innerText =
                             data.produk?.nama_produk;
@@ -977,7 +979,7 @@
                         if (data.produk?.foto_produk) {
                             img.src = "/produk/" + data.produk.foto_produk;
                         } else {
-                            img.src = "https://via.placeholder.com/400x400?text=No+Image";
+                            img.src = "/asset/image/no-image.jpg";
                         }
 
                         statusEl.innerText =
@@ -1168,13 +1170,13 @@
                         document.getElementById("detail-kategori").innerText =
                             data.produk?.kategori ?? "-";
 
-                        document.getElementById("detail-deskripsi").innerText =
+                        document.getElementById("detail-ktr").innerText =
                             data.keterangan ?? "-";
 
                         if (data.produk?.foto_produk) {
                             img.src = "/produk/" + data.produk.foto_produk;
                         } else {
-                            img.src = "https://via.placeholder.com/400x400?text=No+Image";
+                            img.src = "/asset/image/no-image.jpg";
                         }
 
                         status1.innerText =
@@ -1358,6 +1360,18 @@
                 btn.innerHTML = "Simpan Perubahan";
                 btn.disabled = false;
 
+            }
+
+            // Foto produk
+            function previewImage() {
+                const img = document.getElementById("data-image");
+
+                if (!img.src || img.src.includes("no-image")) {
+                    alert("Gambar tidak tersedia");
+                    return;
+                }
+
+                window.open(img.src, "_blank");
             }
         </script>
     @endpush

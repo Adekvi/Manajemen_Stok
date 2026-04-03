@@ -1,12 +1,13 @@
-<div class="flex items-center justify-between w-full h-[90px] shrink-0 border-b border-[var(--border)] px-5 md:px-8"
-    style="background-color: var(--header-bg); color: var(--header-text);">
+<div class="flex items-center justify-between w-full h-[90px] shrink-0 border-b border-[var(--border)] px-5 md:px-8 
+           z-[90] relative"
+     style="background-color: var(--header-bg); color: var(--header-text);">
     <!-- Mobile hamburger -->
     <button onclick="toggleSidebar()" aria-label="Open menu"
         class="lg:hidden size-11 flex items-center justify-center rounded-xl ring-1 ring-border hover:ring-primary transition-all duration-300 cursor-pointer">
         <i data-lucide="menu" class="size-6 text-foreground"></i>
     </button>
     <!-- Page title (shown on desktop) -->
-    <h2 class="hidden lg:block font-bold text-2xl text-foreground">Dashboard</h2>
+    <h2 class="hidden lg:block font-bold text-2xl text-foreground">{{ $title }}</h2>
     <!-- Right actions -->
     <div class="flex items-center gap-3">
         <button onclick="openSearchModal()"
@@ -68,11 +69,12 @@
         @endif
 
         {{-- User --}}
-        <div class="relative hidden md:flex items-center gap-3 pl-4 border-l border-border z-50">
+        <div class="relative flex items-center gap-3 pl-4 border-l border-border z-50">
 
             <!-- USER TRIGGER -->
-            <button id="user-menu-button" class="flex items-center gap-3 group transition">
-                <div class="text-right leading-tight">
+            <button id="user-menu-button" class="flex items-center gap-3 group transition-all">
+
+                <div class="text-right leading-tight hidden sm:block">
                     <p class="font-semibold text-foreground text-sm">{{ Auth::user()->username }}</p>
                     <p class="text-secondary text-xs">{{ Auth::user()->role }}</p>
                 </div>
@@ -85,17 +87,18 @@
                         class="absolute bottom-0 right-0 size-3 bg-green-500 border-2 border-[var(--body-bg)] rounded-full"></span>
                 </div>
 
-                <i data-lucide="chevron-down" class="size-4 text-secondary group-hover:text-foreground transition"></i>
+                <i data-lucide="chevron-down"
+                    class="size-4 text-secondary group-hover:text-foreground transition hidden sm:block"></i>
             </button>
 
             <!-- DROPDOWN -->
             <div id="user-dropdown"
-                class="absolute right-0 top-[65px] w-56 bg-[var(--body-bg)] border border-border rounded-2xl shadow-2xl py-2 opacity-0 scale-95 pointer-events-none transition duration-200 origin-top-rightz-[9999]">
+                class="absolute right-0 top-[70px] w-56 bg-[var(--body-bg)] border border-border rounded-2xl shadow-2xl py-2 opacity-0 scale-95 pointer-events-none transition-all duration-200 origin-top-right z-[9999]">
 
                 <!-- USER INFO -->
                 <div class="px-4 py-3 border-b border-border">
                     <p class="text-sm font-semibold text-foreground">{{ Auth::user()->username }}</p>
-                    <p class="text-xs text-secondary">{{ Auth::user()->email }}</p>
+                    <p class="text-xs text-secondary">{{ Auth::user()->email ?? 'No email' }}</p>
                 </div>
 
                 <!-- PROFILE -->
@@ -116,6 +119,7 @@
                 </form>
             </div>
         </div>
+
     </div>
 </div>
 

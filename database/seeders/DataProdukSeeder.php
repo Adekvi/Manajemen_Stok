@@ -58,7 +58,7 @@ class DataProdukSeeder extends Seeder
                 : 'Makanan';
 
             $produk[] = [
-                'kode_produk' => 'PRD-' . str_pad($i + 1, 4, '0', STR_PAD_LEFT),
+                'kode_produk' => 'PRD-' . str_pad($i + 1, 5, '0', STR_PAD_LEFT),
                 'nama_produk' => $nama,
                 'foto_produk' => null,
                 'satuan' => $satuan[array_rand($satuan)],

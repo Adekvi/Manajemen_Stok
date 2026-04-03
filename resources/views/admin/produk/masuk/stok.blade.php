@@ -3,7 +3,7 @@
     <div id="view-stok-list" class="view-section hidden flex flex-col flex-1 h-full">
 
         <div class="flex items-center gap-2 mb-6 text-sm text-secondary">
-            <a href="{{ route('dashboard') }}" onclick="switchView('dashboard')"
+            <a href="{{ route('admin.dashboard') }}" onclick="switchView('dashboard')"
                 class="hover:text-primary transition-colors">Dashboard</a>
             <i data-lucide="chevron-right" class="size-4"></i>
             <span class="font-medium text-foreground">Stok Masuk</span>
@@ -414,8 +414,8 @@
                                 Deskripsi Produk
                             </p>
 
-                            <div id="detail-deskripsi"
-                                class="p-5 border border-border rounded-xl text-sm text-foreground leading-relaxed">
+                            <div id="detail-keterangan"
+                                class="p-5 border border-border rounded-xl text-sm font-semibold text-foreground leading-relaxed">
                             </div>
                         </div>
                     </div>
@@ -482,12 +482,12 @@
                         Produk
                     </label>
                     <div
-                        class="flex items-center gap-4 p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-neutral-800">
+                        class="flex items-center gap-4 p-4 rounded-2xl border border-border bg-gray-50 dark:bg-neutral-800/50 transition-colors">
                         <!-- FOTO -->
                         <div
-                            class="size-14 rounded-xl overflow-hidden flex items-center justify-center bg-blue-100 dark:bg-blue-900/40">
+                            class="size-14 rounded-xl overflow-hidden flex items-center justify-center bg-primary/10 dark:bg-primary/20">
                             <img id="status-produk-foto" class="w-full h-full object-cover hidden">
-                            <i id="status-produk-icon" data-lucide="image" class="size-6 text-blue-500"></i>
+                            <i id="status-produk-icon" data-lucide="image" class="size-6 text-primary"></i>
                         </div>
                         <!-- INFO -->
                         <div class="flex flex-col">
@@ -520,11 +520,9 @@
                 </div>
                 <!-- INFO BOX -->
                 <div
-                    class="flex items-start gap-3 p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-neutral-800 text-sm text-gray-600 dark:text-gray-300">
-                    <i data-lucide="info" class="size-5 text-blue-500 mt-[2px]"></i>
-                    <p>
-                        Perubahan status akan langsung memperbarui transaksi stok.
-                    </p>
+                    class="flex items-start gap-3 p-4 rounded-2xl border border-border bg-gray-50 dark:bg-neutral-800/40 text-sm text-muted-foreground">
+                    <i data-lucide="info" class="size-5 text-primary mt-0.5 flex-shrink-0"></i>
+                    <p>Perubahan status akan langsung memperbarui transaksi stok.</p>
                 </div>
             </div>
             <!-- FOOTER -->
@@ -534,7 +532,7 @@
                     Batal
                 </button>
                 <button onclick="updateStatus()"
-                    class="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg shadow-blue-500/20 transition">
+                    class="flex-1 py-3.5 rounded-2xl bg-primary text-white font-semibold text-sm hover:bg-primary-hover shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all duration-200">
                     Simpan Perubahan
                 </button>
             </div>
@@ -764,7 +762,7 @@
                         if (selectedProduk.foto_produk) {
                             img.src = "/produk/" + selectedProduk.foto_produk;
                         } else {
-                            img.src = "https://via.placeholder.com/400x400?text=No+Image";
+                            img.src = "/asset/image/no-image.jpg";
                         }
 
                         switchView("edit");
@@ -1178,7 +1176,7 @@
                         document.getElementById("detail-kategori").innerText =
                             data.produk?.kategori ?? "-";
 
-                        document.getElementById("detail-deskripsi").innerText =
+                        document.getElementById("detail-keterangan").innerText =
                             data.keterangan ?? "-";
 
                         if (data.produk?.foto_produk) {

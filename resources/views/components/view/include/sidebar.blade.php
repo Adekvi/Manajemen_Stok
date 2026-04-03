@@ -1,5 +1,8 @@
 <aside id="sidebar"
-    class="flex flex-col w-[280px] shrink-0 h-screen fixed inset-y-0 left-0 z-50 border-r border-[var(--border)] transform -translate-x-full lg:translate-x-0 transition-transform duration-300 overflow-hidden"
+    class="flex flex-col w-[280px] shrink-0 h-screen fixed inset-y-0 left-0 
+           z-[100] border-r border-[var(--border)] 
+           transform -translate-x-full lg:translate-x-0 
+           transition-transform duration-300 overflow-hidden"
     style="background-color: var(--sidebar-bg); color: var(--sidebar-text);">
 
     <!-- Top Bar with logo and title -->

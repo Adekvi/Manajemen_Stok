@@ -36,16 +36,52 @@ class BerandaController extends Controller
             ]);
         }
 
+        $produkHariini = Data_produk::whereDate('created_at', Carbon::today())
+            ->count();
+
+        // dd($produkHariini);
+
+        $stokMasukHariIni = Data_stokmasuk::where('status', 'posted')
+            ->whereDate('tanggal_masuk', Carbon::today())
+            ->count();
+
+        $stokKeluarHariIni = Data_stokkeluar::where('created_by', Auth::id())
+            ->where('status', 'posted')
+            ->whereDate('tanggal_keluar', Carbon::today())
+            ->count();
+
+        $stokCancel = Data_stokkeluar::where('created_by', Auth::id())
+            ->where('status', 'cancelled')
+            ->count();
+
+        // =========================
+        // KEMARIN (UNTUK PERSENTASE)
+        // =========================
+        $produkKemarin = Data_produk::whereDate('created_at', Carbon::yesterday())
+            ->count();
+
+        // =========================
+        // HITUNG PERSENTASE PRODUK
+        // =========================
+        $persenProduk = $produkKemarin > 0
+            ? round((($produkHariini - $produkKemarin) / $produkKemarin) * 100, 1)
+            : 0;
+
         return view('dashboard', compact(
             'produkAll',
             'ttlMasuk',
             'ttlKeluar',
+            'produkHariini',
+            'stokMasukHariIni',
+            'stokKeluarHariIni',
+            'stokCancel',
             'activityTransaksi',
             'attendanceLabels',
             'attendanceData',
             'attendancePercentage',
             'productionData',
-            'productionStats'
+            'productionStats',
+            'persenProduk'
         ));
     }
 
@@ -55,17 +91,23 @@ class BerandaController extends Controller
 
     private function getTotalProduk()
     {
-        return Data_produk::where('status', 'aktif')->count();
+        return Data_produk::where('status', 'aktif')
+            // ->where('created_by', Auth::id())
+            ->count();
     }
 
     private function getTotalStokMasuk()
     {
-        return Data_stokmasuk::where('status', 'posted')->count();
+        return Data_stokmasuk::where('status', 'posted')
+            // ->where('created_by', Auth::id())
+            ->count();
     }
 
     private function getTotalStokKeluar()
     {
-        return Data_stokkeluar::where('status', 'posted')->count();
+        return Data_stokkeluar::where('status', 'posted')
+            ->where('created_by', Auth::id())
+            ->count();
     }
 
     private function getRecentActivities()

@@ -3,7 +3,7 @@
     <div id="view-stok-list" class="view-section hidden flex flex-col flex-1 h-full">
 
         <div class="flex items-center gap-2 mb-6 text-sm text-secondary">
-            <a href="{{ route('dashboard') }}" onclick="switchView('dashboard')"
+            <a href="{{ route('admin.dashboard') }}" onclick="switchView('dashboard')"
                 class="hover:text-primary transition-colors">Dashboard</a>
             <i data-lucide="chevron-right" class="size-4"></i>
             <span class="font-medium text-foreground">Data Produk</span>
@@ -461,8 +461,8 @@
                             <div class="md:col-span-2">
                                 <p class="text-xs text-secondary font-medium uppercase tracking-wider mb-2">
                                     Deskripsi Produk</p>
-                                <div id="detail-deskripsi"
-                                    class="p-5 border border-border rounded-xl text-sm text-foreground leading-relaxed">
+                                <div id="detail-des"
+                                    class="p-5 border border-border rounded-xl font-semibold text-sm text-foreground leading-relaxed">
                                     <p class="mb-3"></p>
                                 </div>
                             </div>
@@ -919,7 +919,7 @@
                         document.getElementById("detail-harga").innerText =
                             "Rp " + Number(data.harga || 0).toLocaleString('id-ID');
 
-                        document.getElementById("detail-deskripsi").innerText =
+                        document.getElementById("detail-des").innerText =
                             data.keterangan ?? "-";
 
                         if (data.foto_produk) {

@@ -33,11 +33,25 @@
                     <p class="font-medium text-secondary">Total Produk</p>
                 </div>
                 <span class="flex items-center text-xs font-semibold text-success bg-success/10 px-2 py-1 rounded-full">
-                    <i data-lucide="trending-up" class="size-3 mr-1"></i> +12%
+                    @php
+                        $isNaik = $persenProduk >= 0;
+                    @endphp
+
+                    <span
+                        class="flex items-center text-xs font-semibold {{ $isNaik ? 'text-success bg-success/10' : 'text-error bg-error/10' }} px-2 py-1 rounded-full">
+
+                        <i data-lucide="{{ $isNaik ? 'trending-up' : 'trending-down' }}" class="size-3 mr-1"></i>
+
+                        {{ $isNaik ? '+' : '' }}{{ $persenProduk }}%
+                    </span>
                 </span>
             </div>
             <p class="font-bold text-[32px] leading-10">{{ $produkAll ?? '-' }}</p>
-            <p class="text-xs text-secondary">Semua produk</p>
+            <p class="text-xs text-secondary">Produk hari ini:
+                <span class="text-foreground font-semibold">
+                    {{ $produkHariini ?? '0' }}
+                </span>
+            </p>
         </div>
 
         <div
@@ -51,7 +65,10 @@
                 </div>
             </div>
             <p class="font-bold text-[32px] leading-10">{{ $ttlMasuk ?? '-' }}</p>
-            <p class="text-xs text-secondary">Order baru hari ini: <span class="text-foreground font-semibold">24</span>
+            <p class="text-xs text-secondary">Stok Masuk hari ini:
+                <span class="text-foreground font-semibold">
+                    {{ $stokMasukHariIni ?? '0' }}
+                </span>
             </p>
         </div>
 
@@ -67,7 +84,11 @@
                 <span class="size-2 rounded-full bg-warning animate-pulse"></span>
             </div>
             <p class="font-bold text-[32px] leading-10">{{ $ttlKeluar ?? '-' }}</p>
-            <p class="text-xs text-secondary">Antrian: <span class="text-foreground font-semibold">12 Jobs</span></p>
+            <p class="text-xs text-secondary">Stok Keluar hari ini:
+                <span class="text-foreground font-semibold">
+                    {{ $stokKeluarHariIni ?? '0' }}
+                </span>
+            </p>
         </div>
 
         <div
@@ -77,11 +98,15 @@
                     <div class="size-11 bg-error/10 rounded-xl flex items-center justify-center">
                         <i data-lucide="package-x" class="size-6 text-error"></i>
                     </div>
-                    <p class="font-medium text-secondary">Report Stok</p>
+                    <p class="font-medium text-secondary">Stok Cancel</p>
                 </div>
             </div>
-            <p class="font-bold text-[32px] leading-10"></p>
-            <p class="text-xs text-secondary">Perlu verifikasi file</p>
+            <p class="font-bold text-[32px] leading-10">
+                <span class="text-foreground font-semibold">
+                    {{ $stokCancel ?? '0' }}
+                </span>
+            </p>
+            <p class="text-xs text-secondary">Total Cancel Order Stok</p>
         </div>
     </div>
 

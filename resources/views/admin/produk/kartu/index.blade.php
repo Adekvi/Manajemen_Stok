@@ -223,8 +223,8 @@
                                 Deskripsi Produk
                             </p>
 
-                            <div id="detail-deskripsi"
-                                class="p-5 border border-border rounded-xl text-sm text-foreground leading-relaxed">
+                            <div id="detail-deskrip"
+                                class="p-5 border border-border font-semibold rounded-xl text-sm text-foreground leading-relaxed">
                             </div>
                         </div>
                     </div>
@@ -444,7 +444,7 @@
                     if (produk.foto_produk) {
                         img.src = `/produk/${produk.foto_produk}`;
                     } else {
-                        img.src = `/images/no-image.png`;
+                        img.src = `/asset/image/no-image.jpg`;
                     }
 
                     /* ===============================
@@ -492,7 +492,7 @@
                     document.getElementById('detail-satuan').innerText =
                         produk.satuan;
 
-                    document.getElementById('detail-deskripsi').innerText =
+                    document.getElementById('detail-deskrip').innerText =
                         produk.keterangan ?? '-';
 
                     /* ===============================

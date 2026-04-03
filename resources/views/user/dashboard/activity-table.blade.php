@@ -7,7 +7,7 @@
                      {{ $kel->created_at->format('d M Y') }}
                  </span>
                  <span class="text-xs text-secondary">
-                     {{ $kel->created_at->format('H:i') }}
+                     {{ $kel->created_at->diffForHumans() }}
                  </span>
              </div>
          </td>

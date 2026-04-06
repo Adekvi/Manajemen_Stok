@@ -27,9 +27,6 @@
                     <span class="font-medium text-foreground">
                         {{ $kel->creator->username }}
                     </span>
-                    <span class="text-xs text-secondary">
-                        User
-                    </span>
                 </div>
             </div>
         </td>

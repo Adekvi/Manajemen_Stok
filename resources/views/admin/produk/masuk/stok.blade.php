@@ -128,16 +128,44 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Record User Transaksi Stok Keluar --}}
+            <div class="flex flex-col rounded-2xl border border-border overflow-hidden shadow-sm">
+                <div class="p-6 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h3 class="font-bold text-lg">Aktivitas Terbaru</h3>
+                        <p class="text-sm text-secondary">Riwayat transaksi user</p>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[700px] text-sm">
+                        <!-- HEADER -->
+                        <thead class="bg-muted/50 border-b border-border">
+                            <tr>
+                                <th class="p-4 pl-6 text-left font-semibold text-secondary">Waktu</th>
+                                <th class="p-4 text-left font-semibold text-secondary">User</th>
+                                <th class="p-4 text-left font-semibold text-secondary">Aktivitas</th>
+                                <th class="p-4 text-left font-semibold text-secondary">Status</th>
+                            </tr>
+                        </thead>
+                        <!-- BODY -->
+                        <tbody class="divide-y divide-border" id="activityTable" data-url="{{ url()->current() }}">
+                            @include('admin.produk.masuk.activity')
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
     <div id="view-stok-edit" class="view-section hidden flex flex-col flex-1 h-full">
         <div class="flex flex-col gap-6 mb-10">
             <div class="flex items-center gap-2 mb-3 text-sm text-secondary">
-                <a href="{{ route('dashboard') }}" onclick="switchView('dashboard')"
+                <a href="{{ route('admin.dashboard') }}" onclick="switchView('dashboard')"
                     class="hover:text-primary transition-colors">Dashboard</a>
                 <i data-lucide="chevron-right" class="size-4"></i>
-                <a href="#" onclick="switchView('list')" class="hover:text-primary transition-colors">Produk</a>
+                <a href="#" onclick="switchView('list')"
+                    class="hover:text-primary transition-colors">Produk</a>
                 <i data-lucide="chevron-right" class="size-4"></i>
                 <span class="font-medium text-foreground">Edit Produk</span>
             </div>
@@ -272,7 +300,7 @@
                                     <label class="text-xs font-medium text-secondary uppercase tracking-wide">
                                         Deskripsi
                                     </label>
-                                    <textarea rows="4" name="keterangan" placeholder="Tuliskan keterangan jika ada..."
+                                    <textarea rows="4" id="ketrangan" name="keterangan" placeholder="Tuliskan keterangan jika ada..."
                                         class="w-full px-4 py-3 border border-border rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none resize-none transition"></textarea>
                                 </div>
                             </div>
@@ -295,7 +323,7 @@
     <div id="view-stok-detail" class="view-section hidden flex flex-col flex-1 h-full">
         <div class="flex flex-col gap-6 mb-10">
             <div class="flex items-center gap-2 mb-3 text-sm text-secondary">
-                <a href="{{ route('dashboard') }}" onclick="switchView('dashboard')"
+                <a href="{{ route('admin.dashboard') }}" onclick="switchView('dashboard')"
                     class="hover:text-primary transition-colors">Dashboard</a>
                 <i data-lucide="chevron-right" class="size-4"></i>
                 <a href="#" onclick="switchView('list')"
@@ -364,6 +392,30 @@
                                 <div class="flex items-center gap-3 p-3.5 border border-border rounded-xl">
                                     <i data-lucide="calendar" class="size-4 text-primary"></i>
                                     <span id="detail-tanggal" class="font-semibold text-sm text-foreground"></span>
+                                </div>
+                            </div>
+                            {{-- Dibuat Oleh --}}
+                            <div>
+                                <p class="text-xs text-secondary font-medium uppercase tracking-wider mb-2">
+                                    Dibuat Oleh
+                                </p>
+                                <div class="flex items-center gap-3 p-3.5 border border-border rounded-xl">
+                                    <div id="det-creator-avatar"
+                                        class="size-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
+                                    </div>
+                                    <span id="det-creator" class="font-semibold text-sm text-foreground"></span>
+                                </div>
+                            </div>
+                            {{-- Diposting Oleh --}}
+                            <div>
+                                <p class="text-xs text-secondary font-medium uppercase tracking-wider mb-2">
+                                    Diposting Oleh
+                                </p>
+                                <div class="flex items-center gap-3 p-3.5 border border-border rounded-xl">
+                                    <div id="det-poster-avatar"
+                                        class="size-8 rounded-full bg-success/10 flex items-center justify-center text-success text-xs font-bold">
+                                    </div>
+                                    <span id="det-poster" class="font-semibold text-sm text-foreground"></span>
                                 </div>
                             </div>
                             {{-- Jumlah --}}
@@ -532,7 +584,7 @@
                     Batal
                 </button>
                 <button onclick="updateStatus()"
-                    class="flex-1 py-3.5 rounded-2xl bg-primary text-white font-semibold text-sm hover:bg-primary-hover shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all duration-200">
+                    class="flex-1 py-3.5 rounded-2xl cursor-pointer bg-primary text-white font-semibold text-sm hover:bg-primary-hover shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all duration-200">
                     Simpan Perubahan
                 </button>
             </div>
@@ -964,6 +1016,7 @@
                         document.getElementById('edit-tgl').value = data.tanggal_masuk;
                         document.getElementById('edit-jumlah').value = data.jumlah;
                         document.getElementById('edit-status').value = data.status;
+                        document.getElementById('ketrangan').value = data.keterangan;
 
                         document.getElementById("data-nama").innerText =
                             data.produk?.nama_produk;
@@ -985,7 +1038,7 @@
                         if (data.produk?.foto_produk) {
                             img.src = "/produk/" + data.produk.foto_produk;
                         } else {
-                            img.src = "https://via.placeholder.com/400x400?text=No+Image";
+                            img.src = "/asset/image/no-image.jpg";
                         }
 
                         statusEl.innerText =
@@ -1182,8 +1235,23 @@
                         if (data.produk?.foto_produk) {
                             img.src = "/produk/" + data.produk.foto_produk;
                         } else {
-                            img.src = "https://via.placeholder.com/400x400?text=No+Image";
+                            img.src = "/asset/image/no-image.jpg";
                         }
+
+                        const creatorName = data.creator?.username ?? "-";
+                        document.getElementById("det-creator").innerText = creatorName;
+
+                        document.getElementById("det-creator-avatar").innerText =
+                            creatorName !== "-" ? creatorName.substring(0, 2).toUpperCase() : "--";
+
+                        // POSTER
+                        const posterName = data.poster?.username ?? "Admin";
+                        document.getElementById("det-poster").innerText = posterName;
+
+                        document.getElementById("det-poster-avatar").innerText =
+                            posterName !== "Belum diposting" ?
+                            posterName.substring(0, 2).toUpperCase() :
+                            "--";
 
                         status1.innerText =
                             data.produk?.status.charAt(0).toUpperCase() + data.produk?.status.slice(1);
@@ -1194,25 +1262,25 @@
                         }
 
                         // Stok
-                        if (data.jumlah === 0) {
+                        if (data.produk?.stok === 0) {
                             stokEl.innerHTML = `
                                 <span class="flex items-center gap-2 text-red-600">
                                     <i data-lucide="x-circle" class="w-4 h-4"></i>
-                                    ${data.jumlah} - Stok habis
+                                    ${data.produk?.stok} - Stok habis
                                 </span>
                             `;
-                        } else if (data.jumlah < 10) {
+                        } else if (data.produk?.stok < 10) {
                             stokEl.innerHTML = `
                                 <span class="flex items-center gap-2 text-orange-600">
                                     <i data-lucide="alert-triangle" class="w-4 h-4"></i>
-                                    ${data.jumlah} - Stok hampir habis
+                                    ${data.produk?.stok} - Stok hampir habis
                                 </span>
                             `;
                         } else {
                             stokEl.innerHTML = `
                                 <span class="flex items-center gap-2 text-green-600">
                                     <i data-lucide="check-circle" class="w-4 h-4"></i>
-                                    ${data.jumlah} - Stok aman
+                                    ${data.produk?.stok} - Stok aman
                                 </span>
                             `;
                         }
@@ -1419,6 +1487,125 @@
                 btn.disabled = false;
 
             }
+
+            // AUTO RELOAD
+            let lastStokHTML = '';
+            let lastActivityHTML = '';
+            let refreshInterval = null;
+
+            function loadStokMasuk(page = 1) {
+                const search = document.getElementById('produkSearch')?.value || '';
+                fetch(`?page=${page}&search=${encodeURIComponent(search)}&type=stok`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        const tableBody = document.getElementById('stokTable');
+                        if (!tableBody) return;
+
+                        if (data.empty) {
+                            tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="7" class="text-center py-10 text-secondary">
+                                    <div class="flex flex-col items-center gap-2">
+                                        <i data-lucide="search-x" class="w-8 h-8"></i>
+                                        <span>Data tidak ditemukan</span>
+                                    </div>
+                                </td>
+                            </tr>`;
+                        } else if (data.html && lastStokHTML !== data.html) {
+                            tableBody.innerHTML = data.html;
+                            lastStokHTML = data.html;
+                            animateRows('#stokTable tr');
+                        }
+                        lucide.createIcons();
+                    })
+                    .catch(err => console.error('Stok load error:', err));
+            }
+
+            function loadActivity() {
+                const activityTable = document.getElementById('activityTable');
+                if (!activityTable) return;
+
+                const url = activityTable.dataset.url || window.location.href;
+
+                fetch(`${url}?type=activity`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.html) return;
+
+                        if (lastActivityHTML !== data.html) {
+                            activityTable.innerHTML = data.html;
+                            lastActivityHTML = data.html;
+                            animateRows('#activityTable tr');
+                        }
+                        lucide.createIcons();
+                    })
+                    .catch(err => console.error('Activity load error:', err));
+            }
+
+            function animateRows(selector) {
+                const rows = document.querySelectorAll(selector);
+                rows.forEach((row, index) => {
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateY(8px)';
+                    setTimeout(() => {
+                        row.style.transition = 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
+                        row.style.opacity = '1';
+                        row.style.transform = 'translateY(0)';
+                    }, index * 35);
+                });
+            }
+
+            // Satu interval untuk kedua tabel
+            function startAutoRefresh() {
+                if (refreshInterval) clearInterval(refreshInterval);
+
+                refreshInterval = setInterval(() => {
+                    loadStokMasuk();
+                    loadActivity();
+                }, 5000); // 5 detik
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                // Inisialisasi pertama
+                loadStokMasuk();
+                loadActivity();
+
+                // Mulai auto refresh
+                startAutoRefresh();
+
+                // Handle pagination (sudah ada di kode kamu)
+                document.addEventListener('click', e => {
+                    const link = e.target.closest('.pagination a');
+                    if (link) {
+                        e.preventDefault();
+                        const url = new URL(link.href);
+                        const page = url.searchParams.get('page');
+                        if (page) loadStokMasuk(page);
+                    }
+                });
+
+                // Stop interval saat tab tidak aktif (hemat resource)
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) {
+                        if (refreshInterval) clearInterval(refreshInterval);
+                    } else {
+                        startAutoRefresh();
+                        // Refresh sekali saat kembali ke tab
+                        loadStokMasuk();
+                        loadActivity();
+                    }
+                });
+            });
         </script>
     @endpush
 

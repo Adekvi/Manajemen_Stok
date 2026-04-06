@@ -2,9 +2,16 @@
 
     <div id="view-profile" class="page-section">
         <div class="flex items-center gap-2 mb-6 text-sm text-secondary">
-            <a href="{{ route('dashboard') }}" onclick="switchView('dashboard')"
-                class="hover:text-primary transition-colors">Dashboard</a>
-            <i data-lucide="chevron-right" class="size-4"></i>
+            @role('admin')
+                <a href="{{ route('admin.dashboard') }}" onclick="switchView('dashboard')"
+                    class="hover:text-primary transition-colors">Dashboard</a>
+                <i data-lucide="chevron-right" class="size-4"></i>
+            @endrole
+            @role('user')
+                <a href="{{ route('user.dashboard') }}" onclick="switchView('dashboard')"
+                    class="hover:text-primary transition-colors">Dashboard</a>
+                <i data-lucide="chevron-right" class="size-4"></i>
+            @endrole
             <span class="font-medium text-foreground">My Profile</span>
         </div>
 

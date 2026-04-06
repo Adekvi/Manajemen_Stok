@@ -53,6 +53,8 @@ class KartuController extends Controller
             ]);
         }
 
+        // dd($kartu);
+
         return view('admin.produk.kartu.index', compact('kartu'));
     }
 

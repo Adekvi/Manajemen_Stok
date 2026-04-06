@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Role;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -14,24 +15,44 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        // ambil role
+        $adminRole = Role::where('name', 'admin')->first();
+        $userRole  = Role::where('name', 'user')->first();
+
         $users = [
             [
-                'id' => '1',
                 'username' => 'admin',
                 'email' => 'admin@gmail.com',
                 'password' => Hash::make('1'),
-                'role' => 'admin',
+                'role' => $adminRole,
             ],
             [
-                'id' => '2',
                 'username' => 'User test',
                 'email' => 'usertest@gmail.com',
                 'password' => Hash::make('1'),
-                'role' => 'user',
+                'role' => $userRole,
             ]
         ];
-        foreach ($users as $key => $user) {
-            User::create($user);
+
+        foreach ($users as $data) {
+
+            $user = User::updateOrCreate(
+                ['email' => $data['email']],
+                [
+                    'username' => $data['username'],
+                    'password' => $data['password'],
+                ]
+            );
+
+            if (!$data['role']) {
+                throw new \Exception("Role tidak ditemukan: {$data['username']}");
+            }
+
+            // 💥 HAPUS dulu semua role lama (biar gak nyangkut)
+            $user->roles()->detach();
+
+            // baru assign
+            $user->roles()->attach($data['role']->id);
         }
     }
 }

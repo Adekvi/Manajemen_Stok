@@ -14,7 +14,8 @@ class BrgKeluarController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Data_stokkeluar::with('produk')
+        $query = Data_stokkeluar::with(['produk', 'creator', 'poster'])
+            ->ownedByUser()
             ->latest();
 
         if ($request->has('search') && $request->search) {
@@ -35,7 +36,7 @@ class BrgKeluarController extends Controller
         $produks = Data_produk::orderBy('nama_produk')->get();
 
         if ($request->ajax()) {
-            $table = view('user.stok.table', compact('keluar'))->render();
+            $table = view('user.stok.keluar.table', compact('keluar'))->render();
 
             return response()->json([
                 'html' => $table,
@@ -43,19 +44,21 @@ class BrgKeluarController extends Controller
             ]);
         }
 
-        return view('user.stok.keluar', compact('keluar', 'produks'));
+        return view('user.stok.keluar.keluar', compact('keluar', 'produks'));
     }
 
     public function show($id)
     {
-        $item = Data_stokkeluar::with('produk:id,nama_produk,kode_produk,harga,kategori,satuan,foto_produk,status')
+        $item = Data_stokkeluar::with('produk')
+            ->ownedByUser()
             ->findOrFail($id);
         return response()->json($item);
     }
 
     public function updateStatus(Request $request, $id)
     {
-        $item = Data_stokkeluar::findOrFail($id);
+        $item = Data_stokkeluar::ownedByUser()
+            ->findOrFail($id);
 
         $statusBaru = $request->status;
         $statusSekarang = $item->status;
@@ -81,7 +84,19 @@ class BrgKeluarController extends Controller
 
         // UPDATE STATUS
         $item->status = $statusBaru;
+
+        // ✅ Isi posted_by saat POSTED / CANCELLED
+        if (in_array($statusBaru, ['posted', 'cancelled'])) {
+            $item->posted_by = Auth::id();
+        }
+
+        // ❗ Optional: kalau balik ke draft, kosongkan lagi
+        if ($statusBaru === 'draft') {
+            $item->posted_by = null;
+        }
+
         $item->save();
+
 
         return response()->json([
             'success' => true,
@@ -116,7 +131,8 @@ class BrgKeluarController extends Controller
 
             return DB::transaction(function () use ($request, $id) {
 
-                $stokKeluar = Data_stokkeluar::lockForUpdate()->findOrFail($id);
+                $stokKeluar = Data_stokkeluar::ownedByUser()
+                    ->findOrFail($id);
 
                 // ❌ Tidak boleh ubah jika sudah POSTED
                 if ($stokKeluar->status === 'posted') {
@@ -182,18 +198,22 @@ class BrgKeluarController extends Controller
 
     private function generateKode()
     {
-        $prefix = 'SK-' . date('Ymd');
+        return DB::transaction(function () {
 
-        $last = Data_stokkeluar::where('kode_transaksi', 'like', $prefix . '%')
-            ->latest('id')
-            ->first();
+            $prefix = 'SK-' . date('Ymd');
 
-        if (!$last) {
-            return $prefix . '-0001';
-        }
+            $last = Data_stokkeluar::where('kode_transaksi', 'like', $prefix . '%')
+                ->lockForUpdate()
+                ->orderBy('kode_transaksi', 'desc')
+                ->first();
 
-        $number = intval(substr($last->kode_transaksi, -4)) + 1;
+            if (!$last) {
+                return $prefix . '-0001';
+            }
 
-        return $prefix . '-' . str_pad($number, 4, '0', STR_PAD_LEFT);
+            $number = (int) substr($last->kode_transaksi, -4) + 1;
+
+            return $prefix . '-' . str_pad($number, 4, '0', STR_PAD_LEFT);
+        });
     }
 }

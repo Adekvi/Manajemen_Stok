@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin\Master\Data_stokkeluar;
 use App\Models\Data_produk;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class KeluarController extends Controller
 {
@@ -32,7 +33,7 @@ class KeluarController extends Controller
 
         $recentTransaksi = Data_stokkeluar::with('produk', 'creator.dataDiri', 'poster') // tambah poster kalau perlu
             ->latest()
-            ->take(10) // sesuaikan jumlah yang ingin ditampilkan
+            ->take(10)
             ->get();
 
         if ($request->ajax()) {
@@ -103,7 +104,19 @@ class KeluarController extends Controller
 
         // UPDATE STATUS
         $item->status = $statusBaru;
+
+        // ✅ Isi posted_by saat POSTED / CANCELLED
+        if (in_array($statusBaru, ['posted', 'cancelled'])) {
+            $item->posted_by = Auth::id();
+        }
+
+        // ❗ Optional: kalau balik ke draft, kosongkan lagi
+        if ($statusBaru === 'draft') {
+            $item->posted_by = null;
+        }
+
         $item->save();
+
 
         return response()->json([
             'success' => true,

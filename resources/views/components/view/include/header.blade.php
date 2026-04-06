@@ -1,6 +1,6 @@
 <div class="flex items-center justify-between w-full h-[90px] shrink-0 border-b border-[var(--border)] px-5 md:px-8 
-           z-[90] relative"
-     style="background-color: var(--header-bg); color: var(--header-text);">
+           z-[60] relative"
+    style="background-color: var(--header-bg); color: var(--header-text);">
     <!-- Mobile hamburger -->
     <button onclick="toggleSidebar()" aria-label="Open menu"
         class="lg:hidden size-11 flex items-center justify-center rounded-xl ring-1 ring-border hover:ring-primary transition-all duration-300 cursor-pointer">
@@ -16,57 +16,56 @@
             <i data-lucide="search" class="size-6 text-secondary"></i>
         </button>
 
-        @if (Auth::check())
-            @if (Auth::user()->role == 'admin')
-                <button
-                    class="size-11 flex items-center justify-center rounded-xl ring-1 ring-border hover:ring-primary transition-all duration-300 cursor-pointer relative"
-                    aria-label="Notifications">
+        @role('admin')
+            <button
+                class="size-11 flex items-center justify-center rounded-xl ring-1 ring-border hover:ring-primary transition-all duration-300 cursor-pointer relative"
+                aria-label="Notifications">
 
-                    <i data-lucide="bell" class="size-6 text-secondary"></i>
-                </button>
-            @elseif (Auth::user()->role == 'user')
-                {{-- NOTIFIKASI --}}
-                <button id="notif-button"
-                    class="size-11 flex items-center justify-center rounded-xl ring-1 ring-border hover:ring-primary transition-all duration-300 cursor-pointer relative"
-                    aria-label="Notifications">
+                <i data-lucide="bell" class="size-6 text-secondary"></i>
+            </button>
+        @endrole
+        @role('user')
+            {{-- NOTIFIKASI --}}
+            <button id="notif-button"
+                class="size-11 flex items-center justify-center rounded-xl ring-1 ring-border hover:ring-primary transition-all duration-300 cursor-pointer relative"
+                aria-label="Notifications">
 
-                    <i data-lucide="bell" class="size-6 text-secondary"></i>
+                <i data-lucide="bell" class="size-6 text-secondary"></i>
 
-                    {{-- badge dikosongkan, nanti diisi JS --}}
-                    <span id="notif-count"
-                        class="hidden absolute -top-1 -right-1 h-5 px-1.5 rounded-full bg-error text-white text-xs font-medium flex items-center justify-center">
-                    </span>
-                </button>
+                {{-- badge dikosongkan, nanti diisi JS --}}
+                <span id="notif-count"
+                    class="hidden absolute -top-1 -right-1 h-5 px-1.5 rounded-full bg-error text-white text-xs font-medium flex items-center justify-center">
+                </span>
+            </button>
 
-                {{-- DROPDOWN --}}
-                <div id="notif-dropdown"
-                    class="absolute right-20 top-[70px] w-80 bg-[var(--body-bg)] border border-border rounded-2xl shadow-2xl py-2 opacity-0 scale-95 pointer-events-none transition duration-200 origin-top-right z-[9999]">
+            {{-- DROPDOWN --}}
+            <div id="notif-dropdown"
+                class="absolute right-20 top-[70px] w-80 bg-[var(--body-bg)] border border-border rounded-2xl shadow-2xl py-2 opacity-0 scale-95 pointer-events-none transition duration-200 origin-top-right z-[9999]">
 
-                    <!-- HEADER -->
-                    <div class="px-4 py-3 border-b border-border flex justify-between items-center">
-                        <p class="text-sm font-semibold text-foreground">Notifikasi</p>
+                <!-- HEADER -->
+                <div class="px-4 py-3 border-b border-border flex justify-between items-center">
+                    <p class="text-sm font-semibold text-foreground">Notifikasi</p>
 
-                        <button id="mark-all" class="text-xs text-primary hover:underline">
-                            Tandai semua
-                        </button>
-                    </div>
+                    <button id="mark-all" class="text-xs text-primary hover:underline">
+                        Tandai semua
+                    </button>
+                </div>
 
-                    <!-- LIST -->
-                    <div id="notif-list" class="max-h-80 overflow-y-auto">
-                        <div class="px-4 py-6 text-center text-xs text-secondary">
-                            Memuat notifikasi...
-                        </div>
-                    </div>
-
-                    <!-- FOOTER -->
-                    <div class="px-4 py-2 border-t border-border text-center">
-                        <button id="lihat-semua" class="text-xs text-primary hover:underline">
-                            Lihat semua
-                        </button>
+                <!-- LIST -->
+                <div id="notif-list" class="max-h-80 overflow-y-auto">
+                    <div class="px-4 py-6 text-center text-xs text-secondary">
+                        Memuat notifikasi...
                     </div>
                 </div>
-            @endif
-        @endif
+
+                <!-- FOOTER -->
+                <div class="px-4 py-2 border-t border-border text-center">
+                    <button id="lihat-semua" class="text-xs text-primary hover:underline">
+                        Lihat semua
+                    </button>
+                </div>
+            </div>
+        @endrole
 
         {{-- User --}}
         <div class="relative flex items-center gap-3 pl-4 border-l border-border z-50">
@@ -76,7 +75,7 @@
 
                 <div class="text-right leading-tight hidden sm:block">
                     <p class="font-semibold text-foreground text-sm">{{ Auth::user()->username }}</p>
-                    <p class="text-secondary text-xs">{{ Auth::user()->role }}</p>
+                    <p class="text-secondary text-xs">{{ Auth::user()->email }}</p>
                 </div>
 
                 <div class="relative">

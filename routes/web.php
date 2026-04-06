@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\Master\Produk\BarangKeluarController;
 use App\Http\Controllers\Admin\Master\Produk\BarangMasukController;
 use App\Http\Controllers\Admin\Master\Produk\DataProdukController;
 use App\Http\Controllers\Admin\Report\ReportController;
+use App\Http\Controllers\Admin\User\MenuAksesController;
 use App\Http\Controllers\Admin\User\PenggunaController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
@@ -20,6 +21,8 @@ use App\Http\Controllers\User\BerandaController;
 use App\Http\Controllers\User\NotifikasiController;
 use App\Http\Controllers\User\Produk\PackageController;
 use App\Http\Controllers\User\Stok\BrgKeluarController;
+use App\Http\Controllers\User\Stok\BrgMasukController;
+use App\Http\Controllers\User\Stok\KartuStokController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'idle', 'active'])->group(function () {
@@ -47,6 +50,12 @@ Route::middleware(['auth', 'idle', 'role:admin'])->prefix('admin')->group(functi
 
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])
         ->name('admin.dashboard');
+
+    Route::prefix('/menu')->group(function () {
+        Route::get('/view', [MenuAksesController::class, 'index'])->name('admin.menu');
+        Route::put('/update/{id}', [MenuAksesController::class, 'updateRoleMenus'])
+            ->name('admin.menu.update');
+    });
 
     Route::prefix('master/menu')->group(function () {
 
@@ -165,8 +174,23 @@ Route::middleware(['auth', 'idle', 'active', 'role:user'])->prefix('user')->grou
     Route::get('/produk-view/{id}', [PackageController::class, 'show'])
         ->name('user.produk.detail');
 
-    // Stok Keluar
-    Route::prefix('menu')->group(function () {
+    Route::prefix('/menu')->group(function () {
+        // Stok Masuk
+        Route::get('/stok-masuk', [BrgMasukController::class, 'index'])->name('user.stok.masuk');
+        Route::post('/stok-transaksi/masuk', [BrgMasukController::class, 'store'])
+            ->name('user.stok-transaksi.masuk');
+
+        Route::get('/stok-masuk/{id}', [BrgMasukController::class, 'show'])
+            ->name('user.stokmasuk.detail');
+
+        Route::put('/stok-edit/masuk/{id}', [BrgMasukController::class, 'update'])
+            ->name('user.masuk.edit');
+
+        Route::put('/stok-status/masuk/{id}', [BrgMasukController::class, 'updateStatus'])->name('user.status.masuk');
+        Route::delete('/stok-hapus/{id}', [BrgMasukController::class, 'destroy'])
+            ->name('user.masuk.stok.hapus');
+
+        // Stok Keluar
         Route::get('/stok-keluar', [BrgKeluarController::class, 'index'])->name('user.stok.keluar');
         Route::post('/stok-transaksi/keluar', [BrgKeluarController::class, 'store'])
             ->name('user.stok-transaksi.keluar');
@@ -178,6 +202,13 @@ Route::middleware(['auth', 'idle', 'active', 'role:user'])->prefix('user')->grou
             ->name('user.keluar.edit');
 
         Route::put('/stok-status/keluar/{id}', [BrgKeluarController::class, 'updateStatus'])->name('user.status.keluar');
+
+        // Kartu Stok
+        Route::get('/kartustok', [KartuStokController::class, 'index'])
+            ->name('user.kartu');
+
+        Route::get('/kartu-detail/{id}', [KartuStokController::class, 'show'])
+            ->name('user.kartu.detail');
     });
 
     Route::prefix('/info')->group(function () {

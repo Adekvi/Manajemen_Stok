@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -10,11 +11,13 @@ class PenggunaController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::with(['dataDiri' => function ($q) {
-            $q->select('id', 'user_id', 'nama_lengkap', 'foto_diri');
-        }])
-            ->select('id', 'username', 'email', 'role', 'is_online', 'is_active')
-            ->where('role', 'user')
+        $query = User::with([
+            'roles',
+            'dataDiri' => function ($q) {
+                $q->select('id', 'user_id', 'nama_lengkap', 'foto_diri');
+            }
+        ])
+            ->select('id', 'username', 'email', 'is_online', 'is_active')
             ->orderBy('id', 'desc');
 
         // === FITUR SEARCH ===
@@ -24,26 +27,21 @@ class PenggunaController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('username', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%");
-                // Jika ingin mencari juga di nama_lengkap dari tabel dataDiri:
-                // ->orWhereHas('dataDiri', function ($qd) use ($search) {
-                //     $qd->where('nama_lengkap', 'like', "%{$search}%");
-                // });
             });
         }
 
         $users = $query->paginate(10)->withQueryString();
 
-        // Jika request AJAX (dari search)
         if ($request->ajax()) {
             $table = view('admin.user.table', compact('users'))->render();
 
-            return response()->json([
-                'html' => $table
-            ]);
+            return response()->json(['html' => $table]);
         }
 
         return view('admin.user.view', compact('users'));
     }
+
+    // app/Http/Controllers/Admin/PenggunaController.php
 
     public function store(Request $request)
     {
@@ -51,7 +49,6 @@ class PenggunaController extends Controller
             'username'   => 'required|string|min:3|unique:users,username',
             'email'      => 'nullable|email|unique:users,email',
             'password'   => 'required|min:3',
-            'role'       => 'required|in:user',
             'is_active'  => 'required|in:0,1',
         ]);
 
@@ -59,9 +56,17 @@ class PenggunaController extends Controller
             'username'   => $request->username,
             'email'      => $request->email,
             'password'   => bcrypt($request->password),
-            'role'       => $request->role,
             'is_active'  => $request->is_active,
         ]);
+
+        // Attach role 'user' (Staff) — karena admin hanya boleh tambah role user
+        $roleUser = Role::where('name', 'user')->first();
+        if ($roleUser) {
+            $user->roles()->attach($roleUser->id);
+        }
+
+        // Optional: Jalankan ensureRole jika ada method itu
+        // $user->ensureRole();
 
         return response()->json([
             'success' => true,
@@ -73,11 +78,10 @@ class PenggunaController extends Controller
     public function edit(Request $request, $id)
     {
         $request->validate([
-            'username'   => 'required|string|min:3|unique:users,username,' . $id,
-            'email'      => 'nullable|email|unique:users,email,' . $id,
-            'password'   => 'nullable|min:3',
-            'role'       => 'required|in:user',
-            'is_active'  => 'required|in:0,1',
+            'username'  => 'required|string|min:3|unique:users,username,' . $id,
+            'email'     => 'nullable|email|unique:users,email,' . $id,
+            'password'  => 'nullable|min:3',
+            'is_active' => 'required|in:0,1',
         ]);
 
         $user = User::findOrFail($id);
@@ -85,7 +89,6 @@ class PenggunaController extends Controller
         $updateData = [
             'username'  => $request->username,
             'email'     => $request->email,
-            'role'      => $request->role,
             'is_active' => $request->is_active,
         ];
 
@@ -95,6 +98,9 @@ class PenggunaController extends Controller
 
         $user->update($updateData);
 
+        // Role tetap 'user' (tidak boleh diubah menjadi admin oleh admin biasa)
+        // Jika ingin fleksibel nanti, baru tambahkan logic sync role
+
         return response()->json([
             'success' => true,
             'message' => 'Pengguna berhasil diperbarui',
@@ -103,7 +109,10 @@ class PenggunaController extends Controller
 
     public function show($id)
     {
-        $user = User::where('role', 'user')->findOrFail($id);
+        $user = User::with('roles')
+            ->select('id', 'username', 'email', 'is_active')
+            ->findOrFail($id);
+
         return response()->json($user);
     }
 
@@ -113,24 +122,22 @@ class PenggunaController extends Controller
             'is_active' => 'required|in:0,1'
         ]);
 
-        $user = User::where('role', 'user')->findOrFail($id);
+        $user = User::findOrFail($id);
 
-        $oldStatus = $user->is_active;
         $newStatus = (bool) $request->is_active;
 
-        $user->update([
-            'is_active' => $newStatus
-        ]);
+        $user->update(['is_active' => $newStatus]);
 
         $message = $newStatus
             ? 'Pengguna berhasil diaktifkan kembali.'
             : 'Pengguna berhasil dinonaktifkan. User tersebut tidak dapat login lagi.';
 
-        // Optional: Jika user sedang online dan kita nonaktifkan, bisa ditambahkan logic force logout nanti
+        // Clear cache sidebar user tersebut
+        cache()->forget('sidebar_user_' . $user->id);
 
         return response()->json([
-            'success' => true,
-            'message' => $message,
+            'success'   => true,
+            'message'   => $message,
             'is_active' => $newStatus
         ]);
     }

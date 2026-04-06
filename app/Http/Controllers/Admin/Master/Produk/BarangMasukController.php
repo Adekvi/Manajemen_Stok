@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin\Master\Produk;
 use App\Http\Controllers\Controller;
 use App\Models\Admin\Master\Data_stokmasuk;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class BarangMasukController extends Controller
@@ -20,7 +22,8 @@ class BarangMasukController extends Controller
             'produk_id' => $request->produk_id,
             'jumlah' => 0,
             'tanggal_masuk' => now(),
-            'status' => 'draft'
+            'status' => 'draft',
+            'created_by' => Auth::user()->id,
         ]);
 
         return response()->json([
@@ -31,19 +34,23 @@ class BarangMasukController extends Controller
 
     private function generateKode()
     {
-        $prefix = 'SM-' . date('Ymd');
+        return DB::transaction(function () {
 
-        $last = Data_stokmasuk::where('kode_transaksi', 'like', $prefix . '%')
-            ->latest()
-            ->first();
+            $prefix = 'SM-' . date('Ymd');
 
-        if (!$last) {
-            return $prefix . '-0001';
-        }
+            $last = Data_stokmasuk::where('kode_transaksi', 'like', $prefix . '%')
+                ->lockForUpdate()
+                ->orderBy('kode_transaksi', 'desc')
+                ->first();
 
-        $number = intval(substr($last->kode_transaksi, -4)) + 1;
+            if (!$last) {
+                return $prefix . '-0001';
+            }
 
-        return $prefix . '-' . str_pad($number, 4, '0', STR_PAD_LEFT);
+            $number = (int) substr($last->kode_transaksi, -4) + 1;
+
+            return $prefix . '-' . str_pad($number, 4, '0', STR_PAD_LEFT);
+        });
     }
 
 

@@ -109,7 +109,7 @@
     <div id="view-stok-detail" class="view-section hidden flex flex-col flex-1 h-full">
         <div class="flex flex-col gap-6 mb-10">
             <div class="flex items-center gap-2 mb-3 text-sm text-secondary">
-                <a href="{{ route('dashboard') }}" onclick="switchView('dashboard')"
+                <a href="{{ route('admin.dashboard') }}" onclick="switchView('dashboard')"
                     class="hover:text-primary transition-colors">Dashboard</a>
                 <i data-lucide="chevron-right" class="size-4"></i>
                 <a href="#" onclick="switchView('list')" class="hover:text-primary transition-colors">Kartu
@@ -502,7 +502,14 @@
                     const stokEl = document.getElementById('detail-stok');
                     const stok = produk.stok;
 
-                    if (stok === 0) {
+                    if (stok < 0) {
+                        stokEl.innerHTML = `
+                            <span class="flex items-center gap-2 text-red-700 dark:text-red-500 font-semibold">
+                                <i data-lucide="alert-octagon" class="w-4 h-4"></i>
+                                ${stok} - Stok minus
+                            </span>
+                        `;
+                    } else if (stok === 0) {
                         stokEl.innerHTML = `
                             <span class="flex items-center gap-2 text-red-600 dark:text-red-400">
                                 <i data-lucide="x-circle" class="w-4 h-4"></i>
@@ -526,7 +533,6 @@
                     }
 
                     lucide.createIcons();
-
 
                     /* ===============================
                        PINDAH KE VIEW DETAIL
@@ -627,7 +633,7 @@
                     if (!isTyping) {
                         loadKartu();
                     }
-                }, 10000);
+                }, 5000);
 
                 /* ==============================
                    SEARCH (DEBOUNCE)

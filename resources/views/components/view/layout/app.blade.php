@@ -17,7 +17,7 @@
     style="background-color: var(--body-bg, #ffffff); color: var(--foreground);">
 
     <!-- Mobile Overlay -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black/80 z-40 lg:hidden hidden" onclick="toggleSidebar()"></div>
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/80 z-90 lg:hidden hidden" onclick="toggleSidebar()"></div>
 
     <div class="flex h-screen max-h-screen flex-1 bg-muted overflow-hidden">
         <!-- SIDEBAR -->
@@ -25,7 +25,7 @@
 
         <!-- SETTINGS FLOATING BUTTON -->
         <button id="theme-toggle-btn"
-            class="fixed right-1 top-1/2 -translate-y-1/2 z-[999] w-12 h-12 rounded-lg bg-white border border-gray-200 shadow-md flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/30">
+            class="fixed right-1 top-1/2 -translate-y-1/2 z-[30] w-12 h-12 rounded-lg bg-white border border-gray-200 shadow-md flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/30">
             <i data-lucide="settings" class="size-6 text-gray-600 animate-spin-slow"></i>
         </button>
 

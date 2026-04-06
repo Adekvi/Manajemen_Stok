@@ -162,7 +162,7 @@
     <div id="view-stok-edit" class="view-section hidden flex flex-col flex-1 h-full">
         <div class="flex flex-col gap-6 mb-10">
             <div class="flex items-center gap-2 mb-3 text-sm text-secondary">
-                <a href="{{ route('dashboard') }}" onclick="switchView('dashboard')"
+                <a href="{{ route('admin.dashboard') }}" onclick="switchView('dashboard')"
                     class="hover:text-primary transition-colors">Dashboard</a>
                 <i data-lucide="chevron-right" class="size-4"></i>
                 <a href="#" onclick="switchView('list')"
@@ -325,7 +325,7 @@
     <div id="view-stok-detail" class="view-section hidden flex flex-col flex-1 h-full">
         <div class="flex flex-col gap-6 mb-10">
             <div class="flex items-center gap-2 mb-3 text-sm text-secondary">
-                <a href="{{ route('dashboard') }}" onclick="switchView('dashboard')"
+                <a href="{{ route('admin.dashboard') }}" onclick="switchView('dashboard')"
                     class="hover:text-primary transition-colors">Dashboard</a>
                 <i data-lucide="chevron-right" class="size-4"></i>
                 <a href="#" onclick="switchView('list')"

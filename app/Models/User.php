@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
+use App\Models\Admin\HakAkses\Menu;
 use App\Models\Admin\Master\Data_kartustok;
 use App\Models\Admin\Master\Data_stokkeluar;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -36,6 +37,7 @@ class User extends Authenticatable
         'is_online'     => 'boolean',
         'is_active'     => 'boolean',
         'email_verified_at' => 'datetime',
+        'password'          => 'hashed',
     ];
 
     /**
@@ -43,20 +45,52 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
-            'is_online'         => 'boolean',
-            'is_active'         => 'boolean',
-        ];
-    }
+    // protected function casts(): array
+    // {
+    //     return [
+    //         'email_verified_at' => 'datetime',
+    //         'password'          => 'hashed',
+    //         'is_online'         => 'boolean',
+    //         'is_active'         => 'boolean',
+    //     ];
+    // }
 
     // LOGIN AUTH
     public function isActive(): bool
     {
         return (bool) $this->is_active;   // pakai (bool) agar lebih aman
+    }
+
+    // LOGIN ROLE
+    public function hasRole(string $roleName): bool
+    {
+        return $this->roles()
+            ->where('name', $roleName)
+            ->exists();
+    }
+
+    public function getPrimaryRole(): ?string
+    {
+        if ($this->hasRole('admin')) {
+            return 'admin';
+        }
+
+        if ($this->hasRole('user')) {
+            return 'user';
+        }
+
+        return null;
+    }
+
+    public function ensureRole(): void
+    {
+        if ($this->roles()->count() === 0) {
+            $defaultRole = Role::where('name', 'user')->first();
+
+            if ($defaultRole) {
+                $this->roles()->attach($defaultRole->id);
+            }
+        }
     }
 
     public function creator()
@@ -92,5 +126,35 @@ class User extends Authenticatable
         return $this->belongsToMany(Master_info::class, 'info_user_reads')
             ->withPivot('read_at')
             ->withTimestamps();
+    }
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id');
+    }
+
+    public function getMenusAttribute()
+    {
+        $roleNames = $this->roles->pluck('name')->toArray();
+
+        return Menu::where('is_active', true)
+            ->whereIn('prefix', $roleNames) // 🔥 FILTER BERDASARKAN ROLE
+            ->orderBy('group_order')
+            ->orderBy('order')
+            ->get()
+            ->groupBy('group')
+            ->map(function ($groupMenus) {
+                return $groupMenus->sortBy('order');
+            });
+    }
+
+    // Pengguna
+    public function getRoleBadgeAttribute()
+    {
+        if ($this->hasRole('admin')) {
+            return '<span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold uppercase">Administrator</span>';
+        }
+
+        return '<span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase">Staff</span>';
     }
 }

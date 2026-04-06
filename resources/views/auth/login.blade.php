@@ -45,7 +45,7 @@
                 <label for="username" class="form-label">Username</label>
                 <input type="text" name="username" id="username"
                     class="form-input @error('username') is-invalid @enderror"
-                    value="{{ old('username', Cookie::get('username')) }}" placeholder="Username" required />
+                    value="{{ old('username', Cookie::get('remember_username')) }}" required>
                 @error('username')
                     <span class="invalid-feedback text-danger" role="alert">
                         <strong>{{ $message }}</strong>
@@ -59,8 +59,7 @@
                 <div class="position-relative">
                     <input type="password" name="password" id="password"
                         class="form-input pe-5 @error('password') is-invalid @enderror"
-                        value="{{ old('password', Cookie::get('password')) }}" placeholder="Enter your password"
-                        required />
+                        placeholder="Enter your password" required />
 
                     <!-- Eye Button -->
                     <span id="togglePassword" class="position-absolute top-50 end-0 translate-middle-y me-3"
@@ -78,8 +77,8 @@
 
             <div class="remember-forgot">
                 <div class="remember-me">
-                    <input type="checkbox" id="remember" name="remember" value="1"
-                        {{ Cookie::has('username') ? 'checked' : '' }} />
+                    <input type="checkbox" name="remember" id="remember" value="1"
+                        {{ Cookie::has('remember_username') ? 'checked' : '' }}>
                     <label for="remember" class="checkbox-label">Remember me</label>
                 </div>
                 <a href="#" class="forgot-password">Forgot password?</a>

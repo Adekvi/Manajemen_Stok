@@ -30,10 +30,9 @@
     </div>
 
     <!-- Navigation Menu -->
-    <div class="flex flex-col p-5 pb-28 gap-6 overflow-y-auto flex-1">
+    {{-- <div class="flex flex-col p-5 pb-28 gap-6 overflow-y-auto flex-1">
         @if (Auth::check())
             @if (Auth::user()->role == 'admin')
-                <!-- Main Menu Section -->
                 <h3 class="font-medium text-sm text-secondary">Menu Utama</h3>
                 <div class="flex flex-col gap-1">
 
@@ -95,39 +94,10 @@
                         </div>
                     </a>
 
-                    <!-- Food Menu (accordion) – contoh, sesuaikan route sesuai kebutuhan -->
-                    {{-- <div>
-                <button data-accordion="food-menu"
-                    class="flex items-center justify-between w-full px-4 py-3 rounded-card hover:bg-gray-50 cursor-pointer transition-all duration-200 group">
-                    <div class="flex items-center gap-2.5">
-                        <i data-lucide="utensils" class="size-6 text-secondary group-hover:text-foreground"></i>
-                        <span class="font-medium text-secondary group-hover:text-foreground">Food Menu</span>
-                    </div>
-                    <i data-lucide="chevron-down"
-                        class="w-4 h-4 text-gray-600 group-hover:text-primary transition-transform duration-200"></i>
-                </button>
-                <div id="food-menu" class="ml-4 mt-2 space-y-1 hidden">
-                    <!-- tambahkan route asli nanti -->
-                    <a href="#" class="group cursor-pointer">
-                        <div class="px-4 py-2 rounded-card hover:bg-gray-50"><span
-                                class="text-foreground text-sm group-hover:text-primary">All Items</span></div>
-                    </a>
-                    <a href="#" class="group cursor-pointer">
-                        <div class="px-4 py-2 rounded-card hover:bg-gray-50"><span
-                                class="text-foreground text-sm group-hover:text-primary">Add New Item</span></div>
-                    </a>
-                    <a href="#" class="group cursor-pointer">
-                        <div class="px-4 py-2 rounded-card hover:bg-gray-50"><span
-                                class="text-foreground text-sm group-hover:text-primary">Categories</span></div>
-                    </a>
-                </div>
-            </div> --}}
-
                 </div>
 
-                <!-- Management Section -->
                 <div class="flex flex-col gap-4">
-                    <h3 class="font-medium text-sm text-secondary">Management</h3>
+                    <h3 class="font-medium text-sm text-secondary">Laporan</h3>
                     <div class="flex flex-col gap-1">
                         <a href="{{ route('admin.master.menu.report') }}"
                             class="group nav-item {{ request()->routeIs('admin.master.menu.report') ? 'active' : '' }}">
@@ -139,6 +109,11 @@
                                     class="font-medium text-secondary group-[.active]:font-semibold group-[.active]:text-primary group-hover:text-foreground">Reports</span>
                             </div>
                         </a>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <h3 class="font-medium text-sm text-secondary">Management</h3>
+                    <div class="flex flex-col gap-1">
                         <a href="{{ route('admin.pengguna') }}"
                             class="group nav-item {{ request()->routeIs('admin.pengguna') ? 'active' : '' }}">
                             <div
@@ -147,6 +122,17 @@
                                     class="size-6 text-secondary group-[.active]:text-primary group-hover:text-foreground"></i>
                                 <span
                                     class="font-medium text-secondary group-[.active]:font-semibold group-[.active]:text-primary group-hover:text-foreground">Pengguna</span>
+                            </div>
+                        </a>
+                        <a href="{{ route('admin.menu') }}"
+                            class="group nav-item {{ request()->routeIs('admin.menu') ? 'active' : '' }}">
+                            <div
+                                class="flex items-center rounded-xl p-4 gap-3 hover:bg-muted transition-all group-[.active]:bg-primary/10 group-[.active]:text-primary">
+                                <i data-lucide="square-menu"
+                                    class="size-6 text-secondary group-[.active]:text-primary group-hover:text-foreground"></i>
+                                <span
+                                    class="font-medium text-secondary group-[.active]:font-semibold group-[.active]:text-primary group-hover:text-foreground">Menu
+                                    Akses</span>
                             </div>
                         </a>
                         <a href="{{ route('menu.setting') }}"
@@ -162,7 +148,6 @@
                     </div>
                 </div>
 
-                <!-- Management Section -->
                 <div class="flex flex-col gap-4">
                     <h3 class="font-medium text-sm text-secondary">Lainnya</h3>
                     <div class="flex flex-col gap-1">
@@ -179,7 +164,6 @@
                     </div>
                 </div>
             @elseif (Auth::user()->role == 'user')
-                <!-- Main Menu Section -->
                 <h3 class="font-medium text-sm text-secondary">Menu Utama</h3>
                 <div class="flex flex-col gap-1">
 
@@ -220,6 +204,96 @@
                 </div>
             @endif
         @endif
+    </div> --}}
+
+    <!-- Food Menu (accordion) – contoh, sesuaikan route sesuai kebutuhan -->
+    {{-- <div>
+        <button data-accordion="food-menu"
+            class="flex items-center justify-between w-full px-4 py-3 rounded-card hover:bg-gray-50 cursor-pointer transition-all duration-200 group">
+            <div class="flex items-center gap-2.5">
+                <i data-lucide="utensils" class="size-6 text-secondary group-hover:text-foreground"></i>
+                <span class="font-medium text-secondary group-hover:text-foreground">Food Menu</span>
+            </div>
+            <i data-lucide="chevron-down"
+                class="w-4 h-4 text-gray-600 group-hover:text-primary transition-transform duration-200"></i>
+        </button>
+        <div id="food-menu" class="ml-4 mt-2 space-y-1 hidden">
+            <!-- tambahkan route asli nanti -->
+            <a href="#" class="group cursor-pointer">
+                <div class="px-4 py-2 rounded-card hover:bg-gray-50"><span
+                        class="text-foreground text-sm group-hover:text-primary">All Items</span></div>
+            </a>
+            <a href="#" class="group cursor-pointer">
+                <div class="px-4 py-2 rounded-card hover:bg-gray-50"><span
+                        class="text-foreground text-sm group-hover:text-primary">Add New Item</span></div>
+            </a>
+            <a href="#" class="group cursor-pointer">
+                <div class="px-4 py-2 rounded-card hover:bg-gray-50"><span
+                        class="text-foreground text-sm group-hover:text-primary">Categories</span></div>
+            </a>
+        </div>
+    </div> --}}
+
+    <div class="flex flex-col p-5 pb-28 gap-6 overflow-y-auto flex-1">
+        @if (isset($sidebarMenus) && $sidebarMenus->isNotEmpty())
+            @foreach ($sidebarMenus as $group => $items)
+                <!-- Judul Group -->
+                <h3 class="font-medium text-sm text-secondary uppercase tracking-wider">
+                    {{ $group ?? 'Utama' }}
+                </h3>
+
+                <div class="flex flex-col gap-1">
+                    @foreach ($items as $menu)
+                        <a href="{{ route($menu->route) }}"
+                            class="group nav-item {{ request()->routeIs($menu->route) ? 'active' : '' }}">
+
+                            <div
+                                class="flex items-center rounded-xl p-4 gap-3 hover:bg-muted transition-all 
+                                    group-[.active]:bg-primary/10 group-[.active]:text-primary">
+
+                                <i data-lucide="{{ $menu->icon ?? 'circle' }}"
+                                    class="size-6 text-secondary group-[.active]:text-primary group-hover:text-foreground"></i>
+
+                                <span
+                                    class="font-medium text-secondary group-[.active]:font-semibold 
+                                        group-[.active]:text-primary group-hover:text-foreground">
+                                    {{ $menu->name }}
+                                </span>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            @endforeach
+        @else
+            <p class="text-secondary text-sm px-4">Tidak ada menu tersedia</p>
+        @endif
+
+        @role('admin')
+            <!-- Judul Group -->
+            <h3 class="font-medium text-sm text-secondary uppercase tracking-wider">
+                Pengaturan
+            </h3>
+            <div class="flex flex-col gap-1">
+
+                <a href="{{ route('menu.setting') }}"
+                    class="group nav-item {{ request()->routeIs('menu.setting') ? 'active' : '' }}">
+
+                    <div
+                        class="flex items-center rounded-xl p-4 gap-3 hover:bg-muted transition-all 
+                group-[.active]:bg-primary/10 group-[.active]:text-primary">
+
+                        <i data-lucide="wrench"
+                            class="size-6 text-secondary group-[.active]:text-primary group-hover:text-foreground"></i>
+
+                        <span
+                            class="font-medium text-secondary group-[.active]:font-semibold 
+                    group-[.active]:text-primary group-hover:text-foreground">
+                            Informasi Toko
+                        </span>
+                    </div>
+                </a>
+            </div>
+        @endrole
     </div>
 
     <!-- Bottom Help Card -->

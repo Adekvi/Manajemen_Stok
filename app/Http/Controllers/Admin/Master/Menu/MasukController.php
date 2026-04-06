@@ -6,13 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin\Master\Data_stokmasuk;
 use App\Models\Data_produk;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class MasukController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Data_stokmasuk::with('produk')
+        $query = Data_stokmasuk::with('produk', 'creator.dataDiri', 'poster')
             ->latest();
 
         if ($request->has('search') && $request->search) {
@@ -32,18 +33,38 @@ class MasukController extends Controller
 
         $produks = Data_produk::orderBy('nama_produk')->get();
 
-        if ($request->ajax()) {
-            $table = view('admin.produk.masuk.table', compact('masuk'))->render();
+        $recentTransaksi = Data_stokmasuk::with('produk', 'creator.dataDiri', 'poster')
+            ->latest()
+            ->take(10)
+            ->get();
 
+        if ($request->ajax()) {
+            // Request dari stok table
+            if ($request->has('type') && $request->type === 'stok') {
+                $table = view('admin.produk.masuk.table', compact('masuk'))->render();
+                return response()->json([
+                    'html' => $table,
+                    'empty' => $masuk->isEmpty()
+                ]);
+            }
+
+            // Request dari activity table (baru)
+            if ($request->has('type') && $request->type === 'activity') {
+                $activityHtml = view('admin.produk.masuk.activity', compact('recentTransaksi'))->render();
+                return response()->json([
+                    'html' => $activityHtml
+                ]);
+            }
+
+            // Default (stok)
+            $table = view('admin.produk.masuk.table', compact('masuk'))->render();
             return response()->json([
                 'html' => $table,
-                'empty' => $masuk->count() === 0
+                'empty' => $masuk->isEmpty()
             ]);
         }
 
-        // dd($masuk);
-
-        return view('admin.produk.masuk.stok', compact('masuk', 'produks'));
+        return view('admin.produk.masuk.stok', compact('masuk', 'produks', 'recentTransaksi'));
     }
 
     public function show($id)
@@ -59,14 +80,13 @@ class MasukController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
-        $item = Data_stokmasuk::findOrFail($id);
+        $item = Data_stokmasuk::ownedByUser()->findOrFail($id);
 
         $statusBaru = $request->status;
         $statusSekarang = $item->status;
 
         // VALIDASI STATUS
         if ($statusSekarang == 'posted') {
-
             if ($statusBaru != 'cancelled') {
                 return response()->json([
                     'success' => false,
@@ -76,15 +96,27 @@ class MasukController extends Controller
         }
 
         if ($statusSekarang == 'cancelled') {
-
             return response()->json([
                 'success' => false,
                 'message' => 'Transaksi yang sudah Cancel tidak dapat diubah lagi.'
             ], 400);
         }
 
-        // UPDATE STATUS
+        /*
+        🔥 LOGIC PENTING
+        */
         $item->status = $statusBaru;
+
+        // ✅ Isi posted_by saat POSTED / CANCELLED
+        if (in_array($statusBaru, ['posted', 'cancelled'])) {
+            $item->posted_by = Auth::id();
+        }
+
+        // ❗ Optional: kalau balik ke draft, kosongkan lagi
+        if ($statusBaru === 'draft') {
+            $item->posted_by = null;
+        }
+
         $item->save();
 
         return response()->json([

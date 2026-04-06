@@ -305,7 +305,7 @@
 
     {{-- MODAL FILTER --}}
     <div id="modalFilter"
-        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/30 backdrop-blur-sm p-4 transition-all duration-300 opacity-0">
+        class="fixed inset-0 z-100 hidden items-center justify-center bg-black/30 backdrop-blur-sm p-4 transition-all duration-300 opacity-0">
         <div id="modalFilterStyle"
             class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-border transform transition-all duration-300 scale-95 opacity-0">
             <!-- HEADER -->
@@ -379,7 +379,7 @@
                     </button>
 
                     <button onclick="applyFilter()"
-                        class="px-5 py-2 text-sm rounded-xl bg-primary text-white font-medium hover:bg-primary-hover transition">
+                        class="px-5 py-2 text-sm rounded-xl cursor-pointer bg-primary text-white font-medium hover:bg-primary-hover transition">
                         Terapkan
                     </button>
                 </div>

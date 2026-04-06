@@ -33,22 +33,25 @@ class BarangKeluarController extends Controller
         ]);
     }
 
-
     private function generateKode()
     {
-        $prefix = 'SK-' . date('Ymd');
+        return DB::transaction(function () {
 
-        $last = Data_stokkeluar::where('kode_transaksi', 'like', $prefix . '%')
-            ->latest('id')
-            ->first();
+            $prefix = 'SK-' . date('Ymd');
 
-        if (!$last) {
-            return $prefix . '-0001';
-        }
+            $last = Data_stokkeluar::where('kode_transaksi', 'like', $prefix . '%')
+                ->lockForUpdate()
+                ->orderBy('kode_transaksi', 'desc')
+                ->first();
 
-        $number = intval(substr($last->kode_transaksi, -4)) + 1;
+            if (!$last) {
+                return $prefix . '-0001';
+            }
 
-        return $prefix . '-' . str_pad($number, 4, '0', STR_PAD_LEFT);
+            $number = (int) substr($last->kode_transaksi, -4) + 1;
+
+            return $prefix . '-' . str_pad($number, 4, '0', STR_PAD_LEFT);
+        });
     }
 
     public function update(Request $request, $id)

@@ -3,10 +3,9 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-// use Illuminate\Support\Facades\Log;
-// use Symfony\Component\HttpFoundation\Response;
 
 class Role
 {
@@ -21,9 +20,16 @@ class Role
             return redirect()->route('login');
         }
 
+        /** @var User $user */
+        $user = Auth::user();
+
         $roles = explode(',', $roles);
 
-        if (!in_array(Auth::user()->role, $roles)) {
+        $hasRole = $user->roles()
+            ->whereIn('name', $roles)
+            ->exists();
+
+        if (!$hasRole) {
             return redirect('/')
                 ->with('error', 'Akses dilarang.');
         }

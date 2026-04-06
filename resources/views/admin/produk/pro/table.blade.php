@@ -23,8 +23,56 @@
                 </div>
             </td>
             <td class="p-4 font-medium">
-                {{ $item->stok }}
+                @if ($item->stok > 10)
+                    <!-- HIJAU -->
+                    <span
+                        class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+                        <span class="font-medium">
+                            {{ $item->stok }} -
+                        </span>
+
+                        <i data-lucide="badge-check" class="size-4"></i>
+                        Stok Aman
+
+                    </span>
+                @elseif ($item->stok > 0 && $item->stok <= 10)
+                    <!-- KUNING -->
+                    <span
+                        class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400">
+                        <span class="font-medium">
+                            {{ $item->stok }} -
+                        </span>
+
+                        <i data-lucide="alert-triangle" class="size-4"></i>
+                        Stok Menipis
+
+                    </span>
+                @elseif ($item->stok === 0)
+                    <!-- KUNING -->
+                    <span
+                        class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400">
+                        <span class="font-medium">
+                            {{ $item->stok }} -
+                        </span>
+
+                        <i data-lucide="alert-triangle" class="size-4"></i>
+                        Stok Habis
+
+                    </span>
+                @elseif ($item->stok < 0)
+                    <!-- MERAH -->
+                    <span
+                        class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400">
+                        <span class="font-medium">
+                            {{ $item->stok }} -
+                        </span>
+
+                        <i data-lucide="circle-x" class="size-4"></i>
+                        Stok Minus
+                    </span>
+                @endif
             </td>
+
             <td class="p-4 font-medium">Rp. {{ number_format($item->harga, 0, ',', '.') }}
                 <span class="text-xs text-secondary font-normal">/
                     {{ $item->satuan }}</span>

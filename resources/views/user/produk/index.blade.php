@@ -361,7 +361,14 @@
                         document.getElementById("detail-kategori").innerText = data.kategori ?? "-";
                         document.getElementById("detail-satuan").innerText = data.satuan;
 
-                        if (data.stok === 0) {
+                        if (data.stok < 0) {
+                            stokEl.innerHTML = `
+                                <span class="flex items-center gap-2 text-red-700 dark:text-red-500 font-semibold">
+                                    <i data-lucide="alert-octagon" class="w-4 h-4"></i>
+                                    ${data.stok} - Stok minus
+                                </span>
+                            `;
+                        } else if (data.stok === 0) {
                             stokEl.innerHTML = `
                                 <span class="flex items-center gap-2 text-red-600">
                                     <i data-lucide="x-circle" class="w-4 h-4"></i>

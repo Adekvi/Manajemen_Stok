@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'role' => \App\Http\Middleware\Role::class,
+            'checkMenuAkses' => \App\Http\Middleware\CheckMenuAccess::class,
             'idle' => \App\Http\Middleware\IdleLogout::class,
             'active' => \App\Http\Middleware\CheckUserActive::class,
         ]);

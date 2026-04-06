@@ -35,13 +35,19 @@
 
             <td class="p-4 text-sm text-secondary">{{ $item->email ?? '-' }}</td>
 
-            <td class="p-4">
-                <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase">
-                    @if ($item->role == 'user')
-                        Staff
-                    @endif
-                </span>
-            </td>
+            {{-- <td class="p-4">
+                @foreach ($item->roles as $role)
+                    <span
+                        class="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase mr-1 mb-1">
+                        {{ ucfirst($role->name) }}
+                    </span>
+                @endforeach
+
+                @if ($item->roles->isEmpty())
+                    <span class="text-secondary text-xs">No Role</span>
+                @endif
+            </td> --}}
+            <td class="p-4">{!! $item->role_badge !!}</td>
 
             <td class="p-4">
                 <button

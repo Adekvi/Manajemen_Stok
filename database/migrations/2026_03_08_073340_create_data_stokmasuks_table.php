@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('data_stokmasuks', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('created_by')->nullable()->constrained('users');
+            $table->foreignId('posted_by')->nullable()->constrained('users');
             $table->string('kode_transaksi')->unique();
             $table->foreignId('produk_id')
                 ->constrained('data_produks')

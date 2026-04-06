@@ -48,7 +48,7 @@
 
     <!-- MODAL TAMBAH PENGGUNA -->
     <div id="modalAddUser"
-        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all duration-300">
+        class="fixed inset-0 z-100 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all duration-300">
 
         <div id="modalContentAdd"
             class="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-border overflow-hidden 
@@ -102,12 +102,10 @@
                     <div>
                         <label class="block text-sm font-medium text-secondary mb-2">Role</label>
                         <div class="relative">
-                            <select id="role" name="role" required
-                                class="w-full px-4 py-3.5 rounded-2xl border border-border bg-muted/30 focus:ring-2 focus:ring-primary/30 outline-none appearance-none cursor-pointer text-sm">
-                                <option value="user">Staff</option>
-                            </select>
-                            <i data-lucide="chevron-down"
-                                class="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-secondary pointer-events-none"></i>
+                            <div class="px-4 py-3.5 bg-muted/50 rounded-2xl text-sm font-medium text-foreground">
+                                Staff (User)
+                            </div>
+                            <input type="hidden" name="role" value="user">
                         </div>
                     </div>
 
@@ -133,7 +131,7 @@
                     Batal
                 </button>
                 <button onclick="submitAddUser()"
-                    class="px-6 py-2.5 rounded-2xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition flex items-center gap-2">
+                    class="px-6 py-2.5 rounded-2xl cursor-pointer bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition flex items-center gap-2">
                     <i data-lucide="save" class="size-4"></i>
                     Simpan Pengguna
                 </button>
@@ -191,7 +189,7 @@
                     Batal
                 </button>
                 <button onclick="updateUserStatus()"
-                    class="flex-1 py-3 rounded-2xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition">
+                    class="flex-1 py-3 rounded-2xl cursor-pointer bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition">
                     Simpan Perubahan
                 </button>
             </div>
@@ -200,7 +198,7 @@
 
     {{-- MODAL EDIT PENGGUNA --}}
     <div id="modalEditUser"
-        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all duration-300">
+        class="fixed inset-0 z-100 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all duration-300">
 
         <div id="modalContentEdit"
             class="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-border overflow-hidden 
@@ -260,12 +258,10 @@
                         <div>
                             <label class="block text-sm font-medium text-secondary mb-2">Role</label>
                             <div class="relative">
-                                <select id="edit_role" name="role" required
-                                    class="w-full px-4 py-3.5 rounded-2xl border border-border bg-muted/30 focus:ring-2 focus:ring-primary/30 outline-none appearance-none cursor-pointer text-sm">
-                                    <option value="user">Staff</option>
-                                </select>
-                                <i data-lucide="chevron-down"
-                                    class="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-secondary pointer-events-none"></i>
+                                <div class="px-4 py-3.5 bg-muted/50 rounded-2xl text-sm font-medium text-foreground">
+                                    Staff (User)
+                                </div>
+                                <input type="hidden" id="edit_role" name="role" value="user">
                             </div>
                         </div>
 
@@ -291,7 +287,7 @@
                         Batal
                     </button>
                     <button type="button" onclick="submitEditUser()"
-                        class="px-6 py-2.5 rounded-2xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition flex items-center gap-2">
+                        class="px-6 py-2.5 rounded-2xl bg-primary cursor-pointer text-white text-sm font-semibold hover:bg-primary/90 transition flex items-center gap-2">
                         <i data-lucide="save" class="size-4"></i>
                         Update Pengguna
                     </button>
@@ -331,6 +327,42 @@
             }
 
             // ==================== MODAL TAMBAH USER ====================
+            async function submitAddUser() {
+                const button = event.currentTarget;
+                const originalHTML = button.innerHTML;
+                button.innerHTML = `<i data-lucide="loader" class="size-4 animate-spin"></i> Menyimpan...`;
+                button.disabled = true;
+
+                const formData = new FormData(document.getElementById('formAddUser'));
+
+                try {
+                    const res = await fetch('/admin/pengguna/store', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                                'content')
+                        }
+                    });
+
+                    const data = await res.json();
+
+                    if (data.success) {
+                        alert(data.message);
+                        closeAddUserModal();
+                        location.reload(); // atau refresh table via AJAX
+                    } else {
+                        alert(data.message || 'Gagal menambahkan pengguna');
+                    }
+                } catch (err) {
+                    alert('Terjadi kesalahan saat menyimpan');
+                } finally {
+                    button.innerHTML = originalHTML;
+                    button.disabled = false;
+                }
+            }
+
             function openAddUserModal() {
                 const modal = document.getElementById('modalAddUser');
                 const content = document.getElementById('modalContentAdd');
@@ -368,18 +400,14 @@
                 fetch(`/admin/pengguna/show/${id}`)
                     .then(res => res.json())
                     .then(data => {
-                        // Isi form
+                        document.getElementById('edit_user_id').value = data.id;
                         document.getElementById('edit_username').value = data.username || '';
                         document.getElementById('edit_email').value = data.email || '';
-                        document.getElementById('edit_role').value = data.role || 'user';
                         document.getElementById('edit_is_active').value = data.is_active ? "1" : "0";
-
-                        // Kosongkan password
                         document.getElementById('edit_password').value = '';
 
-                        // Simpan ID ke form agar bisa digunakan saat submit
                         const form = document.getElementById('formEditUser');
-                        form.dataset.userId = id; // ← Penting!
+                        form.dataset.userId = id;
 
                         openEditModal();
                     })

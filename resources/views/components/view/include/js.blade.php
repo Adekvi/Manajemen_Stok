@@ -1,6 +1,7 @@
-@if (Auth::check() && Auth::user()->role === 'user')
+@role('user')
     <script src="{{ asset('asset/js/notif.js') }}"></script>
-@endif
+@endrole
+
 <script src="{{ asset('asset/js/custom.js') }}"></script>
 <script>
     // Header

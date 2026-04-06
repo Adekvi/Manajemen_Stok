@@ -99,7 +99,7 @@
 
     {{-- MODAL ADD --}}
     <div id="modalAnnouncement"
-        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0">
+        class="fixed inset-0 z-100 hidden items-center justify-center bg-black/40 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0">
         <div id="modalContentAdd"
             class="w-full max-w-3xl bg-white rounded-2xl shadow-xl border border-border transform transition-all duration-300 scale-95 opacity-0">
             <!-- isi modal -->
@@ -183,7 +183,7 @@
                     </button>
 
                     <button type="submit"
-                        class="px-5 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-hover transition flex items-center gap-2">
+                        class="px-5 py-2 cursor-pointer rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-hover transition flex items-center gap-2">
 
                         <i data-lucide="save" class="size-4"></i>
                         Simpan Pengumuman
@@ -198,7 +198,7 @@
 
     {{-- MODAL EDIT --}}
     <div id="modalEditAnnouncement"
-        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0">
+        class="fixed inset-0 z-100 hidden items-center justify-center bg-black/40 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0">
         <div id="modalContentEdit"
             class="w-full max-w-3xl bg-white rounded-2xl shadow-xl border border-border transform transition-all duration-300 scale-95 opacity-0">
             <form id="formEditAnnouncement" method="POST">
@@ -260,7 +260,8 @@
                         class="px-4 py-2 rounded-xl border border-border">
                         Batal
                     </button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-primary text-white flex items-center gap-2">
+                    <button type="submit"
+                        class="px-5 cursor-pointer py-2 rounded-xl bg-primary text-white flex items-center gap-2">
                         <i data-lucide="save" class="size-4"></i>
                         Update
                     </button>

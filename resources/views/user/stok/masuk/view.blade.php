@@ -1,4 +1,4 @@
-<x-view.layout.app title="Stok Keluar">
+<x-view.layout.app title="Stok Masuk">
 
     <div id="view-stok-list" class="view-section hidden flex flex-col flex-1 h-full">
 
@@ -6,16 +6,16 @@
             <a href="{{ route('user.dashboard') }}" onclick="switchView('dashboard')"
                 class="hover:text-primary transition-colors">Dashboard</a>
             <i data-lucide="chevron-right" class="size-4"></i>
-            <span class="font-medium text-foreground">Stok Keluar</span>
+            <span class="font-medium text-foreground">Stok Masuk</span>
         </div>
 
         <div class="flex flex-col gap-6 mb-10">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div class="relative w-full md:w-auto">
                     <div class="flex items-center gap-2">
                         <span class="font-semibold text-lg">Kelola Stok</span>
                     </div>
-                    <p class="text-sm text-secondary">Total {{ $keluar->total() }} produk</p>
+                    <p class="text-sm text-secondary">Total {{ $masuk->total() }} produk</p>
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
@@ -58,6 +58,7 @@
 
                 </div>
             </div>
+
             <div class="border border-border rounded-2xl overflow-hidden shadow-sm">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm whitespace-nowrap">
@@ -66,54 +67,54 @@
                                 <th class="p-4 pl-6 font-semibold text-secondary">No</th>
                                 <th class="p-4 pl-6 font-semibold text-secondary">Kode Transaksi</th>
                                 <th class="p-4 pl-6 font-semibold text-secondary">Nama Produk</th>
-                                <th class="p-4 font-semibold text-secondary">Jumlah Produk Keluar</th>
+                                <th class="p-4 font-semibold text-secondary">Jumlah Produk Masuk</th>
                                 <th class="p-4 font-semibold text-secondary">Harga Satuan</th>
                                 <th class="p-4 font-semibold text-secondary">Status</th>
                                 <th class="p-4 text-center font-semibold text-secondary">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border" id="stokTable">
-                            @include('user.stok.table')
+                            @include('user.stok.masuk.table')
                         </tbody>
                     </table>
                 </div>
                 <div
                     class="p-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-secondary">
                     <p>
-                        Menampilkan {{ $keluar->firstItem() }} - {{ $keluar->lastItem() }}
-                        dari {{ $keluar->total() }} produk
+                        Menampilkan {{ $masuk->firstItem() }} - {{ $masuk->lastItem() }}
+                        dari {{ $masuk->total() }} produk
                     </p>
                     <div class="flex items-center gap-2">
                         <div class="flex gap-2">
                             {{-- tombol previous --}}
-                            @if ($keluar->onFirstPage())
+                            @if ($masuk->onFirstPage())
                                 <span
                                     class="size-9 flex items-center justify-center rounded-lg border border-border opacity-50">
                                     <i data-lucide="chevron-left" class="size-4"></i>
                                 </span>
                             @else
-                                <a href="{{ $keluar->previousPageUrl() }}"
+                                <a href="{{ $masuk->previousPageUrl() }}"
                                     class="size-9 flex items-center justify-center rounded-lg border border-border hover:bg-muted cursor-pointer transition-colors">
                                     <i data-lucide="chevron-left" class="size-4"></i>
                                 </a>
                             @endif
                             {{-- nomor halaman --}}
-                            @for ($i = 1; $i <= $keluar->lastPage(); $i++)
-                                @if ($i == $keluar->currentPage())
+                            @for ($i = 1; $i <= $masuk->lastPage(); $i++)
+                                @if ($i == $masuk->currentPage())
                                     <span
                                         class="size-9 flex items-center justify-center rounded-lg bg-primary text-white shadow-md shadow-primary/20 cursor-pointer">
                                         {{ $i }}
                                     </span>
                                 @else
-                                    <a href="{{ $keluar->url($i) }}"
+                                    <a href="{{ $masuk->url($i) }}"
                                         class="size-9 flex items-center justify-center rounded-lg border border-border hover:bg-muted cursor-pointer transition-colors">
                                         {{ $i }}
                                     </a>
                                 @endif
                             @endfor
                             {{-- tombol next --}}
-                            @if ($keluar->hasMorePages())
-                                <a href="{{ $keluar->nextPageUrl() }}"
+                            @if ($masuk->hasMorePages())
+                                <a href="{{ $masuk->nextPageUrl() }}"
                                     class="size-9 flex items-center justify-center rounded-lg border border-border hover:bg-muted cursor-pointer transition-colors">
                                     <i data-lucide="chevron-right" class="size-4"></i>
                                 </a>
@@ -160,10 +161,9 @@
                                         class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                                     <div
                                         class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                        <button type="button" onclick="previewImage()"
-                                            class="size-10 flex items-center justify-center rounded-xl hover:bg-gray-100 cursor-pointer shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
-                                            <i data-lucide="eye" class="size-5 text-gray-700"></i>
-                                        </button>
+                                        <button
+                                            class="size-10 flex items-center justify-center  rounded-xl hover:bg-gray-100 cursor-pointer shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300"><i
+                                                data-lucide="eye" class="size-5 text-gray-700"></i></button>
                                     </div>
                                 </div>
                                 <h3 id="data-nama" class="font-bold text-xl text-center mb-1 text-foreground"></h3>
@@ -172,6 +172,28 @@
                                     <span class="text-sm font-medium text-secondary">Status Produk</span>
                                     <span id="data-status-text"
                                         class="px-3 py-1.5 rounded-full text-xs font-bold"></span>
+                                </div>
+                            </div>
+                            <div class="border border-border rounded-2xl shadow-sm p-6 md:p-8">
+                                <div class="flex items-center justify-between mb-6">
+                                    <div>
+                                        <h3 class="font-bold text-lg text-foreground">Performa Produk</h3>
+                                        <p class="text-sm text-secondary mt-1">
+                                            Informasi stok produk saat ini
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="space-y-4">
+                                    <div
+                                        class="flex items-center gap-4 p-4 border border-border rounded-xl hover:bg-muted/30 transition-colors group">
+                                        <div
+                                            class="size-12 bg-blue-50 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                                            <i data-lucide="disc" class="size-6 text-primary"></i>
+                                        </div>
+                                        <div class="text-right">
+                                            <p id="stok-jmlh" class="font-bold text-sm text-foreground"></p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -204,7 +226,7 @@
                                         <label class="text-xs font-medium text-secondary uppercase tracking-wide">
                                             Tanggal
                                         </label>
-                                        <input type="date" id="edit-tgl" name="tanggal_keluar"
+                                        <input type="date" id="edit-tgl" name="tanggal_masuk"
                                             class="w-full h-11 px-4 border border-border rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none transition">
                                     </div>
                                 </div>
@@ -213,7 +235,7 @@
                                     {{-- Jumlah --}}
                                     <div class="flex flex-col gap-2">
                                         <label class="text-xs font-medium text-secondary uppercase tracking-wide">
-                                            Jumlah Produk Keluar
+                                            Jumlah Produk Masuk
                                         </label>
                                         <input type="number" id="edit-jumlah" name="jumlah" placeholder="0"
                                             class="w-full h-11 px-4 border border-border rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none transition">
@@ -272,7 +294,7 @@
                                     <label class="text-xs font-medium text-secondary uppercase tracking-wide">
                                         Deskripsi
                                     </label>
-                                    <textarea rows="4" id="edit-ket" name="keterangan" placeholder="Tuliskan keterangan jika ada..."
+                                    <textarea rows="4" id="ktrg" name="keterangan" placeholder="Tuliskan keterangan jika ada..."
                                         class="w-full px-4 py-3 border border-border rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none resize-none transition"></textarea>
                                 </div>
                             </div>
@@ -369,7 +391,7 @@
                             {{-- Jumlah --}}
                             <div>
                                 <p class="text-xs text-secondary font-medium uppercase tracking-wider mb-2">
-                                    Jumlah Produk Keluar
+                                    Jumlah Produk Masuk
                                 </p>
                                 <div class="flex items-center gap-3 p-3.5 border border-border rounded-xl">
                                     <i data-lucide="package" class="size-4 text-primary"></i>
@@ -414,14 +436,14 @@
                                 Deskripsi Produk
                             </p>
 
-                            <div id="detail-ktr"
-                                class="p-5 border border-border font-semibold rounded-xl text-sm text-foreground leading-relaxed">
+                            <div id="detail-ktrg"
+                                class="p-5 border border-border rounded-xl text-sm font-semibold text-foreground leading-relaxed">
                             </div>
                         </div>
                     </div>
 
                     {{-- PERFORMA PRODUK --}}
-                    {{-- <div class="border border-border rounded-2xl shadow-sm p-6 md:p-8">
+                    <div class="border border-border rounded-2xl shadow-sm p-6 md:p-8">
                         <div class="flex items-center justify-between mb-6">
                             <div>
                                 <h3 class="font-bold text-lg text-foreground">Performa Produk</h3>
@@ -446,7 +468,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div> --}}
+                    </div>
                 </div>
             </div>
         </div>
@@ -454,32 +476,33 @@
 
     {{-- modal --}}
     <div id="status-modal"
-        class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-black/40 backdrop-blur-sm transition-opacity duration-300"
-        aria-modal="true" role="dialog">
-        <div class="w-full max-w-md rounded-3xl border border-border bg-white dark:bg-neutral-900 shadow-2xl transform transition-all duration-300 scale-95 opacity-0"
-            id="status-modal-card">
-
+        class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-black/30 dark:bg-black/60 backdrop-blur-sm transition-opacity">
+        <div id="status-modal-card"
+            class="w-full max-w-md rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-neutral-900 shadow-2xl transition-all">
             <!-- HEADER -->
-            <div class="p-6 border-b border-border flex items-center justify-between">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                 <div>
-                    <h3 class="text-lg font-bold text-foreground">Ubah Status Transaksi</h3>
-                    <p class="text-sm text-muted-foreground mt-1">Pilih status baru untuk transaksi stok</p>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">
+                        Ubah Status Transaksi
+                    </h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Pilih status baru untuk transaksi stok
+                    </p>
                 </div>
                 <button onclick="closeStatusModal()"
-                    class="p-2 rounded-lg hover:bg-muted transition-colors duration-200 text-muted-foreground hover:text-foreground">
-                    <i data-lucide="x" class="size-5"></i>
+                    class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 transition">
+                    <i data-lucide="x" class="size-5 text-gray-600 dark:text-gray-300"></i>
                 </button>
             </div>
-
             <!-- BODY -->
-            <div class="p-6 flex flex-col gap-6">
+            <div class="p-6 flex flex-col gap-5">
                 <input type="hidden" id="status-id">
-
+                <!-- PRODUK -->
                 <div>
-                    <label class="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                    <label
+                        class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
                         Produk
                     </label>
-
                     <div
                         class="flex items-center gap-4 p-4 rounded-2xl border border-border bg-gray-50 dark:bg-neutral-800/50 transition-colors">
                         <!-- FOTO -->
@@ -488,31 +511,35 @@
                             <img id="status-produk-foto" class="w-full h-full object-cover hidden">
                             <i id="status-produk-icon" data-lucide="image" class="size-6 text-primary"></i>
                         </div>
-                        <!-- INFO PRODUK -->
+                        <!-- INFO -->
                         <div class="flex flex-col">
-                            <p id="status-produk-nama" class="font-semibold text-foreground">-</p>
-                            <p id="status-produk-kode" class="text-xs text-muted-foreground">-</p>
+                            <p id="status-produk-nama" class="font-semibold text-gray-900 dark:text-white">
+                                -
+                            </p>
+                            <p id="status-produk-kode" class="text-xs text-gray-500 dark:text-gray-400">
+                                -
+                            </p>
                         </div>
                     </div>
                 </div>
-
+                <!-- STATUS -->
                 <div>
-                    <label class="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5">
+                    <label
+                        class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
                         Status Transaksi
                     </label>
                     <div class="relative">
                         <select id="status-select"
-                            class="w-full px-4 py-3.5 rounded-2xl border border-border bg-white dark:bg-neutral-800 text-sm text-foreground focus:border-primary/60 focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-200 appearance-none cursor-pointer">
+                            class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500/30 outline-none appearance-none cursor-pointer">
                             <option value="draft">Draft</option>
                             <option value="posted">Posting</option>
                             <option value="cancelled">Cancel</option>
                         </select>
                         <i data-lucide="chevron-down"
-                            class="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none"></i>
+                            class="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none"></i>
                     </div>
-                    <p id="status-warning" class="text-xs text-warning mt-1.5 min-h-[1.25rem]"></p>
+                    <p id="status-warning" class="text-xs text-gray-500 dark:text-gray-400 mt-2"></p>
                 </div>
-
                 <!-- INFO BOX -->
                 <div
                     class="flex items-start gap-3 p-4 rounded-2xl border border-border bg-gray-50 dark:bg-neutral-800/40 text-sm text-muted-foreground">
@@ -520,15 +547,14 @@
                     <p>Perubahan status akan langsung memperbarui transaksi stok.</p>
                 </div>
             </div>
-
             <!-- FOOTER -->
-            <div class="p-6 border-t border-border flex gap-3">
+            <div class="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-3">
                 <button onclick="closeStatusModal()"
-                    class="flex-1 py-3.5 rounded-2xl border border-border font-medium text-sm text-foreground hover:bg-gray-100 dark:hover:bg-neutral-700 transition-colors duration-200">
+                    class="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-neutral-800 transition">
                     Batal
                 </button>
                 <button onclick="updateStatus()"
-                    class="flex-1 py-3.5 rounded-2xl bg-primary text-white font-semibold text-sm hover:bg-primary-hover shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all duration-200">
+                    class="flex-1 py-3.5 rounded-2xl cursor-pointer bg-primary text-white font-semibold text-sm hover:bg-primary-hover shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all duration-200">
                     Simpan Perubahan
                 </button>
             </div>
@@ -574,7 +600,7 @@
                     btnBuat.addEventListener("click", async function() {
                         try {
                             const csrf = document.querySelector('meta[name="csrf-token"]').content;
-                            const res = await fetch("/user/menu/stok-keluar", {
+                            const res = await fetch("/user/menu/stok-masuk", {
                                 method: "POST",
                                 headers: {
                                     "X-CSRF-TOKEN": csrf,
@@ -693,7 +719,7 @@
 
                         const csrf = document.querySelector('meta[name="csrf-token"]').content;
 
-                        const res = await fetch("/user/menu/stok-transaksi/keluar", {
+                        const res = await fetch("/user/menu/stok-transaksi/masuk", {
                             method: "POST",
                             headers: {
                                 "X-CSRF-TOKEN": csrf,
@@ -713,6 +739,21 @@
                         }
 
                         const trx = data.data;
+
+                        const statusEl = document.getElementById("data-status-text");
+
+                        const statusProduk = selectedProduk.status ?? "-";
+
+                        statusEl.innerText =
+                            statusProduk.charAt(0).toUpperCase() + statusProduk.slice(1);
+
+                        if (statusProduk === 'aktif') {
+                            statusEl.className =
+                                "px-3 py-1.5 rounded-full text-xs font-bold bg-success/10 text-success";
+                        } else if (statusProduk === 'nonaktif') {
+                            statusEl.className =
+                                "px-3 py-1.5 rounded-full text-xs font-bold bg-error/10 text-error";
+                        }
 
                         // isi hidden field
                         document.getElementById("edit-id").value = trx.id;
@@ -737,18 +778,6 @@
                             selectedProduk.satuan;
                         document.getElementById("data-harga").innerText =
                             formatRupiah(selectedProduk.harga);
-
-                        const statusEl = document.getElementById("data-status-text");
-
-                        statusEl.innerText =
-                            selectedProduk.status.charAt(0).toUpperCase() + selectedProduk.status.slice(1);
-                        if (selectedProduk.status === 'aktif') {
-                            statusEl.className =
-                                "px-3 py-1.5 rounded-full text-xs font-bold bg-success/10 text-success";
-                        } else if (selectedProduk.status === 'nonaktif') {
-                            statusEl.className =
-                                "px-3 py-1.5 rounded-full text-xs font-bold bg-error/10 text-error";
-                        }
 
                         const img = document.getElementById("data-image");
 
@@ -939,7 +968,7 @@
             // Fungsi dipanggil dari tombol edit di table
             function editData(id) {
 
-                fetch(`/user/menu/stok-keluar/${id}`)
+                fetch(`/user/menu/stok-masuk/${id}`)
                     .then(res => res.json())
                     .then(data => {
 
@@ -949,15 +978,16 @@
                         }
 
                         const statusEl = document.getElementById("data-status-text");
+                        const stokEl = document.getElementById("stok-jmlh");
 
                         document.getElementById('edit-id').value = data.id;
                         document.getElementById('produk_id').value = data.produk_id;
 
                         document.getElementById('edit-kode').value = data.kode_transaksi;
-                        document.getElementById('edit-tgl').value = data.tanggal_keluar;
+                        document.getElementById('edit-tgl').value = data.tanggal_masuk;
                         document.getElementById('edit-jumlah').value = data.jumlah;
                         document.getElementById('edit-status').value = data.status;
-                        document.getElementById('edit-ket').value = data.keterangan;
+                        document.getElementById('ktrg').value = data.keterangan;
 
                         document.getElementById("data-nama").innerText =
                             data.produk?.nama_produk;
@@ -980,6 +1010,36 @@
                             img.src = "/produk/" + data.produk.foto_produk;
                         } else {
                             img.src = "/asset/image/no-image.jpg";
+                        }
+
+                        if (data.produk?.stok < 0) {
+                            stokEl.innerHTML = `
+                                <span class="flex items-center gap-2 text-red-700 dark:text-red-500 font-semibold">
+                                    <i data-lucide="alert-octagon" class="w-4 h-4"></i>
+                                    ${data.produk?.stok} - Stok minus
+                                </span>
+                            `;
+                        } else if (data.produk?.stok === 0) {
+                            stokEl.innerHTML = `
+                                <span class="flex items-center gap-2 text-red-600">
+                                    <i data-lucide="x-circle" class="w-4 h-4"></i>
+                                    ${data.produk?.stok} - Stok habis
+                                </span>
+                            `;
+                        } else if (data.produk?.stok < 10) {
+                            stokEl.innerHTML = `
+                                <span class="flex items-center gap-2 text-orange-600">
+                                    <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                                    ${data.produk?.stok} - Stok hampir habis
+                                </span>
+                            `;
+                        } else {
+                            stokEl.innerHTML = `
+                                <span class="flex items-center gap-2 text-green-600">
+                                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                    ${data.produk?.stok} - Stok aman
+                                </span>
+                            `;
                         }
 
                         statusEl.innerText =
@@ -1022,7 +1082,7 @@
                     }
 
                     try {
-                        const res = await fetch(`/user/menu/stok-edit/keluar/${id}`, {
+                        const res = await fetch(`/user/menu/stok-edit/masuk/${id}`, {
                             method: "POST",
                             headers: {
                                 'X-CSRF-TOKEN': csrfToken,
@@ -1137,13 +1197,13 @@
 
                 currentProdukId = id;
 
-                fetch(`/user/menu/stok-keluar/${id}`)
+                fetch(`/user/menu/stok-masuk/${id}`)
                     .then(res => res.json())
                     .then(data => {
 
                         const editBtn = document.querySelector('#view-stok-detail button');
                         const status1 = document.getElementById("detail-status-text");
-                        // const stokEl = document.getElementById("detail-stok");
+                        const stokEl = document.getElementById("detail-stok");
                         const status2 = document.getElementById("detail-status");
 
                         if (data.status === 'posted') {
@@ -1158,7 +1218,7 @@
                         document.getElementById("detail-kode").innerText = "Kode: " + (data.produk?.kode_produk ?? "-");
 
                         document.getElementById("detail-kode-transaksi").innerText = data.kode_transaksi;
-                        document.getElementById("detail-tanggal").innerText = data.tanggal_keluar;
+                        document.getElementById("detail-tanggal").innerText = data.tanggal_masuk;
                         document.getElementById("detail-jumlah").innerText = data.jumlah;
 
                         document.getElementById("detail-harga").innerText =
@@ -1170,7 +1230,7 @@
                         document.getElementById("detail-kategori").innerText =
                             data.produk?.kategori ?? "-";
 
-                        document.getElementById("detail-ktr").innerText =
+                        document.getElementById("detail-ktrg").innerText =
                             data.keterangan ?? "-";
 
                         if (data.produk?.foto_produk) {
@@ -1185,6 +1245,30 @@
                             status1.className = "px-3 py-1.5 rounded-full text-xs font-bold bg-success/10 text-success";
                         } else if (data.produk?.status === 'nonaktif') {
                             status1.className = "px-3 py-1.5 rounded-full text-xs font-bold bg-error/10 text-error";
+                        }
+
+                        // Stok
+                        if (data.jumlah === 0) {
+                            stokEl.innerHTML = `
+                                <span class="flex items-center gap-2 text-red-600">
+                                    <i data-lucide="x-circle" class="w-4 h-4"></i>
+                                    ${data.jumlah} - Stok habis
+                                </span>
+                            `;
+                        } else if (data.jumlah < 10) {
+                            stokEl.innerHTML = `
+                                <span class="flex items-center gap-2 text-orange-600">
+                                    <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                                    ${data.jumlah} - Stok hampir habis
+                                </span>
+                            `;
+                        } else {
+                            stokEl.innerHTML = `
+                                <span class="flex items-center gap-2 text-green-600">
+                                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                    ${data.jumlah} - Stok aman
+                                </span>
+                            `;
                         }
 
                         // Status
@@ -1202,8 +1286,36 @@
                     });
             }
 
+            function deleteData(id) {
+
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+                if (!confirm('Yakin ingin menghapus data ini?')) return;
+
+                fetch(`/user/menu/stok-hapus/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(result => {
+                        if (result.success) {
+                            loadData();
+                            alert('Data berhasil dihapus');
+                        } else {
+                            alert(result.message || 'Gagal menghapus data');
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Terjadi kesalahan saat menghapus');
+                    });
+            }
+
             // --------------------------------------------------
-            // 7. Update Status
+            // &. Update Status
             // --------------------------------------------------
             function openStatusModal(id, status, produk) {
 
@@ -1320,7 +1432,7 @@
 
                 try {
 
-                    const res = await fetch(`/user/menu/stok-status/keluar/${id}`, {
+                    const res = await fetch(`/user/menu/stok-status/masuk/${id}`, {
 
                         method: "PUT",
 
@@ -1360,18 +1472,6 @@
                 btn.innerHTML = "Simpan Perubahan";
                 btn.disabled = false;
 
-            }
-
-            // Foto produk
-            function previewImage() {
-                const img = document.getElementById("data-image");
-
-                if (!img.src || img.src.includes("no-image")) {
-                    alert("Gambar tidak tersedia");
-                    return;
-                }
-
-                window.open(img.src, "_blank");
             }
         </script>
     @endpush

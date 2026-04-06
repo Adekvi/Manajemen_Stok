@@ -81,6 +81,7 @@ class DashboardController extends Controller
     {
         return [
             'recentTransaksi' => Data_kartustok::with(['produk', 'user.dataDiri'])
+                ->ownedByUser()
                 ->latest()
                 ->limit(5)
                 ->get()
@@ -159,6 +160,7 @@ class DashboardController extends Controller
     private function getActivityAjax()
     {
         $recentTransaksi = Data_kartustok::with(['produk', 'user.dataDiri'])
+            ->ownedByUser()
             ->latest()
             ->limit(5)
             ->get();

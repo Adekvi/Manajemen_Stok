@@ -33,21 +33,22 @@
                     <p class="font-medium text-secondary">Total Produk</p>
                 </div>
                 @php
-                    $isNaik = $persenProduk >= 0;
+                    $isNaik = $persenProduk > 0;
+                    $isTurun = $persenProduk < 0;
                 @endphp
 
-                <span
-                    class="flex items-center text-xs font-semibold {{ $isNaik ? 'text-success bg-success/10' : 'text-error bg-error/10' }} px-2 py-1 rounded-full">
+                <span id="persenProduk"
+                    class="flex items-center text-xs font-semibold {{ $isNaik ? 'text-success bg-success/10' : ($isTurun ? 'text-error bg-error/10' : 'text-gray-500 bg-gray-100') }} px-2 py-1 rounded-full">
 
-                    <i data-lucide="{{ $isNaik ? 'trending-up' : 'trending-down' }}" class="size-3 mr-1"></i>
+                    <i data-lucide="{{ $isNaik ? 'trending-up' : ($isTurun ? 'trending-down' : 'minus') }}"
+                        class="size-3 mr-1"></i>
 
-                    {{ $isNaik ? '+' : '' }}{{ $persenProduk }}%
+                    {{ $persenProduk > 0 ? '+' : '' }}{{ $persenProduk }}%
                 </span>
-
             </div>
-            <p class="font-bold text-[32px] leading-10">{{ $produkAll ?? '-' }}</p>
+            <p id="produkAll" class="font-bold text-[32px] leading-10">{{ $produkAll ?? '-' }}</p>
             <p class="text-xs text-secondary">Produk hari ini:
-                <span class="text-foreground font-semibold">
+                <span id="produkHariIni" class="text-foreground font-semibold">
                     {{ $produkHariini ?? '0' }}
                 </span>
             </p>
@@ -63,9 +64,9 @@
                     <p class="font-medium text-secondary">Total Stok Masuk</p>
                 </div>
             </div>
-            <p class="font-bold text-[32px] leading-10">{{ $ttlMasuk ?? '-' }}</p>
+            <p id="ttlMasuk" class="font-bold text-[32px] leading-10">{{ $ttlMasuk ?? '-' }}</p>
             <p class="text-xs text-secondary">Stok Masuk hari ini:
-                <span class="text-foreground font-semibold">
+                <span id="stokMasukHariIni" class="text-foreground font-semibold">
                     {{ $stokMasukHariIni ?? '0' }}
                 </span>
             </p>
@@ -82,9 +83,9 @@
                 </div>
                 <span class="size-2 rounded-full bg-warning animate-pulse"></span>
             </div>
-            <p class="font-bold text-[32px] leading-10">{{ $ttlKeluar ?? '-' }}</p>
+            <p id="ttlKeluar" class="font-bold text-[32px] leading-10">{{ $ttlKeluar ?? '-' }}</p>
             <p class="text-xs text-secondary">Stok Keluar hai ini:
-                <span class="text-foreground font-semibold">
+                <span id="stokKeluarHariIni" class="text-foreground font-semibold">
                     {{ $stokKeluarHariIni ?? '0' }}
                 </span>
             </p>
@@ -101,7 +102,7 @@
                 </div>
             </div>
             <p class="font-bold text-[32px] leading-10">
-                <span class="text-foreground font-semibold">
+                <span id="stokCancel" class="text-foreground font-semibold">
                     {{ $stokCancel ?? '0' }}
                 </span>
             </p>
@@ -225,6 +226,86 @@
                     $productionStats['cancelled'] ?? 0,
                 ],
             ]) !!};
+
+            // Auto-reload
+            let lastData = null;
+
+            // helper biar aman
+            function setText(id, value) {
+                const el = document.getElementById(id);
+                if (el) el.innerText = value;
+            }
+
+            function loadStats() {
+                fetch('/admin/dashboard/stats')
+                    .then(res => res.json())
+                    .then(data => {
+
+                        // 🚫 skip kalau data sama
+                        if (JSON.stringify(data) === JSON.stringify(lastData)) {
+                            return;
+                        }
+
+                        lastData = data;
+
+                        // =========================
+                        // TOTAL
+                        // =========================
+                        setText('produkAll', data.produkAll);
+                        setText('ttlMasuk', data.ttlMasuk);
+                        setText('ttlKeluar', data.ttlKeluar);
+                        setText('stokCancel', data.stokCancel);
+
+                        // =========================
+                        // HARI INI
+                        // =========================
+                        setText('produkHariIni', data.produkHariini);
+                        setText('stokMasukHariIni', data.stokMasukHariIni);
+                        setText('stokKeluarHariIni', data.stokKeluarHariIni);
+
+                        // =========================
+                        // PERSENTASE
+                        // =========================
+                        const persenEl = document.getElementById('persenProduk');
+
+                        if (persenEl) {
+                            let isNaik = data.persenProduk > 0;
+                            let isTurun = data.persenProduk < 0;
+
+                            persenEl.className =
+                                "flex items-center text-xs font-semibold px-2 py-1 rounded-full " +
+                                (isNaik ?
+                                    'text-success bg-success/10' :
+                                    isTurun ?
+                                    'text-error bg-error/10' :
+                                    'text-gray-500 bg-gray-100');
+
+                            persenEl.innerHTML = `
+                                <i data-lucide="${isNaik ? 'trending-up' : (isTurun ? 'trending-down' : 'minus')}" class="size-3 mr-1"></i>
+                                ${data.persenProduk > 0 ? '+' : ''}${data.persenProduk}%
+                            `;
+                        }
+
+                        // refresh icon lucide
+                        if (window.lucide) {
+                            lucide.createIcons();
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Polling stats error:', err);
+                    });
+            }
+
+            // =========================
+            // AUTO POLLING
+            // =========================
+            setInterval(loadStats, 5000);
+
+            // optional: load pertama kali tanpa nunggu 5 detik
+            loadStats();
+
+            // ⏱ polling tiap 5 detik
+            setInterval(loadStats, 5000);
         </script>
         <script src="{{ asset('asset/js/admin/dashboard.js') }}"></script>
     @endpush

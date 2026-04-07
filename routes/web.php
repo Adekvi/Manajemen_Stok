@@ -50,6 +50,7 @@ Route::middleware(['auth', 'idle', 'role:admin'])->prefix('admin')->group(functi
 
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])
         ->name('admin.dashboard');
+    Route::get('/dashboard/stats', [AdminDashboardController::class, 'getStatsAjax'])->name('admin.stats');
 
     Route::prefix('/menu')->group(function () {
         Route::get('/view', [MenuAksesController::class, 'index'])->name('admin.menu');

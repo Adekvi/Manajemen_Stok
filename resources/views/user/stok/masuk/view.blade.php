@@ -744,6 +744,8 @@
 
                         const statusProduk = selectedProduk.status ?? "-";
 
+                        const stokEl = document.getElementById("stok-jmlh");
+
                         statusEl.innerText =
                             statusProduk.charAt(0).toUpperCase() + statusProduk.slice(1);
 
@@ -785,6 +787,36 @@
                             img.src = "/produk/" + selectedProduk.foto_produk;
                         } else {
                             img.src = "/asset/image/no-image.jpg";
+                        }
+
+                        if (selectedProduk.stok < 0) {
+                            stokEl.innerHTML = `
+                                <span class="flex items-center gap-2 text-red-700 dark:text-red-500 font-semibold">
+                                    <i data-lucide="alert-octagon" class="w-4 h-4"></i>
+                                    ${selectedProduk.stok} - Stok minus
+                                </span>
+                            `;
+                        } else if (selectedProduk.stok === 0) {
+                            stokEl.innerHTML = `
+                                <span class="flex items-center gap-2 text-red-600">
+                                    <i data-lucide="x-circle" class="w-4 h-4"></i>
+                                    ${selectedProduk.stok} - Stok habis
+                                </span>
+                            `;
+                        } else if (selectedProduk.stok < 10) {
+                            stokEl.innerHTML = `
+                                <span class="flex items-center gap-2 text-orange-600">
+                                    <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                                    ${selectedProduk.stok} - Stok hampir habis
+                                </span>
+                            `;
+                        } else {
+                            stokEl.innerHTML = `
+                                <span class="flex items-center gap-2 text-green-600">
+                                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                    ${selectedProduk.stok} - Stok aman
+                                </span>
+                            `;
                         }
 
                         switchView("edit");

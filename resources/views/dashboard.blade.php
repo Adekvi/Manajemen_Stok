@@ -34,15 +34,17 @@
                 </div>
                 <span class="flex items-center text-xs font-semibold text-success bg-success/10 px-2 py-1 rounded-full">
                     @php
-                        $isNaik = $persenProduk >= 0;
+                        $isNaik = $persenProduk > 0;
+                        $isTurun = $persenProduk < 0;
                     @endphp
 
                     <span
-                        class="flex items-center text-xs font-semibold {{ $isNaik ? 'text-success bg-success/10' : 'text-error bg-error/10' }} px-2 py-1 rounded-full">
+                        class="flex items-center text-xs font-semibold {{ $isNaik ? 'text-success bg-success/10' : ($isTurun ? 'text-error bg-error/10' : 'text-gray-500 bg-gray-100') }} px-2 py-1 rounded-full">
 
-                        <i data-lucide="{{ $isNaik ? 'trending-up' : 'trending-down' }}" class="size-3 mr-1"></i>
+                        <i data-lucide="{{ $isNaik ? 'trending-up' : ($isTurun ? 'trending-down' : 'minus') }}"
+                            class="size-3 mr-1"></i>
 
-                        {{ $isNaik ? '+' : '' }}{{ $persenProduk }}%
+                        {{ $persenProduk > 0 ? '+' : '' }}{{ $persenProduk }}%
                     </span>
                 </span>
             </div>

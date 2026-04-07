@@ -735,6 +735,7 @@
                         }
 
                         const trx = data.data;
+                        const stokEl = document.getElementById("cek-stok");
 
                         // isi hidden field
                         document.getElementById("edit-id").value = trx.id;
@@ -761,6 +762,36 @@
                             formatRupiah(selectedProduk.harga);
 
                         const statusEl = document.getElementById("data-status-text");
+
+                        if (selectedProduk.produk?.stok < 0) {
+                            stokEl.innerHTML = `
+                                <span class="flex items-center gap-2 text-red-700 dark:text-red-500 font-semibold">
+                                    <i data-lucide="alert-octagon" class="w-4 h-4"></i>
+                                    ${selectedProduk.produk?.stok} - Stok minus
+                                </span>
+                            `;
+                        } else if (selectedProduk.produk?.stok === 0) {
+                            stokEl.innerHTML = `
+                                <span class="flex items-center gap-2 text-red-600">
+                                    <i data-lucide="x-circle" class="w-4 h-4"></i>
+                                    ${selectedProduk.produk?.stok} - Stok habis
+                                </span>
+                            `;
+                        } else if (selectedProduk.produk?.stok < 10) {
+                            stokEl.innerHTML = `
+                                <span class="flex items-center gap-2 text-orange-600">
+                                    <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                                    ${selectedProduk.produk?.stok} - Stok hampir habis
+                                </span>
+                            `;
+                        } else {
+                            stokEl.innerHTML = `
+                                <span class="flex items-center gap-2 text-green-600">
+                                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                    ${selectedProduk.produk?.stok} - Stok aman
+                                </span>
+                            `;
+                        }
 
                         statusEl.innerText =
                             selectedProduk.status.charAt(0).toUpperCase() + selectedProduk.status.slice(1);

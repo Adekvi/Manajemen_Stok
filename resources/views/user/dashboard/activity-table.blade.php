@@ -4,10 +4,10 @@
          <td class="p-4 pl-6 text-foreground">
              <div class="flex flex-col leading-tight">
                  <span class="font-medium">
-                     {{ $kel->created_at->format('d M Y') }}
+                     {{ \Carbon\Carbon::parse($kel->tanggal)->format('d M Y') }}
                  </span>
                  <span class="text-xs text-secondary">
-                     {{ $kel->created_at->diffForHumans() }}
+                     {{ \Carbon\Carbon::parse($kel->tanggal)->diffForHumans() }}
                  </span>
              </div>
          </td>
@@ -16,16 +16,16 @@
              <div class="flex items-center gap-3">
                  <div
                      class="size-9 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
-                     @if ($kel->creator && $kel->creator->dataDiri && $kel->creator->dataDiri->foto_diri)
-                         <img src="{{ asset('foto_profile/' . $kel->creator->dataDiri->foto_diri) }}"
+                     @if ($kel->user && $kel->user->dataDiri && $kel->user->dataDiri->foto_diri)
+                         <img src="{{ asset('foto_profile/' . $kel->user->dataDiri->foto_diri) }}"
                              class="size-9 rounded-full object-cover">
                      @else
-                         {{ $kel->creator ? strtoupper(substr($kel->creator->username, 0, 2)) : 'AD' }}
+                         {{ $kel->user ? strtoupper(substr($kel->user->username, 0, 2)) : 'AD' }}
                      @endif
                  </div>
                  <div class="flex flex-col leading-tight">
                      <span class="font-medium text-foreground">
-                         {{ $kel->creator->username }}
+                         {{ $kel->user->username }}
                      </span>
                      <span class="text-xs text-secondary">
                          User
@@ -35,34 +35,91 @@
          </td>
          <!-- AKTIVITAS -->
          <td class="p-4">
-             <span class="text-secondary">Mengeluarkan</span>
-             <span class="font-semibold text-foreground">
-                 {{ $kel->jumlah }}
-             </span>
-             <span class="text-secondary">produk</span>
-             <span class="font-medium text-primary">
-                 {{ $kel->produk->nama_produk }}
-             </span>
+             @php
+                 $config = match ($kel->tipe) {
+                     'masuk' => [
+                         'label' => 'Menambahkan',
+                         'color' => 'text-green-600',
+                         'icon' => 'arrow-down',
+                     ],
+                     'keluar' => [
+                         'label' => 'Mengeluarkan',
+                         'color' => 'text-red-600',
+                         'icon' => 'arrow-up',
+                     ],
+                     'koreksi_masuk' => [
+                         'label' => 'Koreksi Masuk',
+                         'color' => 'text-yellow-600',
+                         'icon' => 'rotate-ccw',
+                     ],
+                     'koreksi_keluar' => [
+                         'label' => 'Koreksi Keluar',
+                         'color' => 'text-orange-600',
+                         'icon' => 'rotate-cw',
+                     ],
+                     default => [
+                         'label' => 'Aktivitas',
+                         'color' => 'text-gray-600',
+                         'icon' => 'circle',
+                     ],
+                 };
+             @endphp
+
+             <div class="flex items-center gap-2 group relative">
+
+                 <!-- ICON -->
+                 <div class="p-2 rounded-lg bg-muted/50 {{ $config['color'] }}">
+                     <i data-lucide="{{ $config['icon'] }}" class="size-4"></i>
+                 </div>
+
+                 <!-- TEXT -->
+                 <div class="flex flex-col leading-tight">
+                     <span class="text-sm">
+                         <span class="text-secondary">{{ $config['label'] }}</span>
+                         <span class="font-semibold text-foreground">
+                             {{ $kel->qty }}
+                         </span>
+                         <span class="text-secondary">produk</span>
+                     </span>
+
+                     <span class="text-xs text-primary font-medium">
+                         {{ $kel->produk->nama_produk ?? '-' }} -
+                         <span class="text-secondary">
+                             {{ $kel->produk->kode_produk ?? '-' }}
+                         </span>
+                     </span>
+                 </div>
+
+                 <!-- TOOLTIP -->
+                 @if ($kel->keterangan)
+                     <div
+                         class="absolute bottom-full mb-2 hidden group-hover:block bg-black text-white text-xs px-3 py-2 rounded-lg shadow-lg whitespace-nowrap z-50">
+                         {{ $kel->keterangan }}
+                     </div>
+                 @endif
+
+             </div>
          </td>
+
          <!-- STATUS -->
          <td class="p-4">
-             @if ($kel->status == 'posted')
+             @if (str_contains($kel->tipe, 'masuk'))
                  <span
                      class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-600">
-                     <i data-lucide="check-circle" class="size-4"></i>
-                     Posted
+                     <i data-lucide="arrow-down" class="size-4"></i>
+                     Masuk
                  </span>
-             @elseif ($kel->status == 'cancelled')
+             @elseif (str_contains($kel->tipe, 'keluar'))
                  <span
-                     class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-600">
-                     <i data-lucide="x-circle" class="size-4"></i>
-                     Cancelled
+                     class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-600">
+                     <i data-lucide="arrow-up" class="size-4"></i>
+                     Keluar
                  </span>
              @else
                  <span
-                     class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                     <i data-lucide="clock" class="size-4"></i>
-                     Draft
+                     class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-600">
+                     <i data-lucide="refresh-ccw" class="size-4"></i>
+                     Koreksi
                  </span>
              @endif
          </td>

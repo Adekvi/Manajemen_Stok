@@ -336,7 +336,7 @@
                 const formData = new FormData(document.getElementById('formAddUser'));
 
                 try {
-                    const res = await fetch('/admin/pengguna/store', {
+                    const res = await fetch('/admin/pengguna/tambah', {
                         method: 'POST',
                         body: formData,
                         headers: {

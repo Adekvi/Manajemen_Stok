@@ -23,7 +23,7 @@ class DashboardController extends Controller
             $this->getStats(),
             $this->getAttendance(),
             $this->getProduction(),
-            $this->getRecentTransaksi()
+            $this->getRecentTransaksi(),
         ));
     }
 
@@ -58,9 +58,15 @@ class DashboardController extends Controller
         // =========================
         // HITUNG PERSENTASE PRODUK
         // =========================
-        $persenProduk = $produkKemarin > 0
-            ? round((($produkHariini - $produkKemarin) / $produkKemarin) * 100, 1)
-            : 0;
+        if ($produkKemarin == 0 && $produkHariini == 0) {
+            $persenProduk = 0;
+        } elseif ($produkKemarin == 0 && $produkHariini > 0) {
+            $persenProduk = 100; // growth baru
+        } elseif ($produkHariini == 0) {
+            $persenProduk = 0; // 🔥 bukan -100%
+        } else {
+            $persenProduk = round((($produkHariini - $produkKemarin) / $produkKemarin) * 100, 1);
+        }
 
         return [
             'produkAll' => $produkAll,
@@ -168,5 +174,10 @@ class DashboardController extends Controller
         return response()->json([
             'html' => view('admin.dashboard.activity-table', compact('recentTransaksi'))->render()
         ]);
+    }
+
+    public function getStatsAjax()
+    {
+        return response()->json($this->getStats());
     }
 }

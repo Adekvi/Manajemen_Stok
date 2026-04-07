@@ -4,15 +4,17 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Master_info;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 class NotifikasiController extends Controller
 {
     public function index()
     {
+        /** @var User|null $user */
         $user = Auth::user();
 
-        if ($user->role !== 'user') {
+        if (!$user || !$user->hasRole('user')) {
             return response()->json([]);
         }
 
@@ -28,14 +30,13 @@ class NotifikasiController extends Controller
                     'id' => $item->id,
                     'judul' => $item->judul,
                     'deskripsi' => $item->konten,
-                    'waktu' => \Carbon\Carbon::parse($item->tgl)->diffForHumans()
+                    'waktu' => $item->created_at->diffForHumans()
                 ];
             });
 
-        // dd($data);
-
         return response()->json($data);
     }
+
 
     public function all()
     {
@@ -82,7 +83,11 @@ class NotifikasiController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        $ids = Master_info::where('status', 'aktif')->pluck('id');
+        $ids = Master_info::where('status', 'aktif')
+            ->whereDoesntHave('readers', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })
+            ->pluck('id');
 
         $data = [];
         foreach ($ids as $id) {

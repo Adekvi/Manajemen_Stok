@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin\Master\Data_kartustok;
 use App\Models\Admin\Master\Data_stokkeluar;
 use App\Models\Admin\Master\Data_stokmasuk;
 use App\Models\Data_produk;
@@ -15,20 +16,26 @@ class BerandaController extends Controller
 {
     public function index(Request $request)
     {
-        $produkAll   = $this->getTotalProduk();
-        $ttlMasuk    = $this->getTotalStokMasuk();
-        $ttlKeluar   = $this->getTotalStokKeluar();
-        $activityTransaksi = $this->getRecentActivities();
+        $userId = Auth::id();
 
-        // Data untuk Chart
+        // GLOBAL (sesuai requirement)
+        $produkAll   = $this->getTotalProduk();
+        $produkHariini = Data_produk::whereDate('created_at', Carbon::today())->count();
+
+        // USER ONLY
+        $ttlMasuk    = $this->getTotalStokMasuk($userId);
+        $ttlKeluar   = $this->getTotalStokKeluar($userId);
+        $activityTransaksi = $this->getRecentActivities($userId);
+
+        // CHART
         $attendanceLabels = [];
         $attendanceData   = [];
         $attendancePercentage = 0;
         $productionData   = [];
         $productionStats  = [];
 
-        $this->prepareAttendanceChart($attendanceLabels, $attendanceData, $attendancePercentage);
-        $this->prepareProductionChart($productionData, $productionStats);
+        $this->prepareAttendanceChart($attendanceLabels, $attendanceData, $attendancePercentage, $userId);
+        $this->prepareProductionChart($productionData, $productionStats, $userId);
 
         if ($request->ajax()) {
             return response()->json([
@@ -36,36 +43,37 @@ class BerandaController extends Controller
             ]);
         }
 
-        $produkHariini = Data_produk::whereDate('created_at', Carbon::today())
-            ->count();
-
-        // dd($produkHariini);
-
-        $stokMasukHariIni = Data_stokmasuk::where('status', 'posted')
+        // =========================
+        // HARI INI (USER)
+        // =========================
+        $stokMasukHariIni = Data_stokmasuk::where('created_by', $userId)
+            ->where('status', 'posted')
             ->whereDate('tanggal_masuk', Carbon::today())
             ->count();
 
-        $stokKeluarHariIni = Data_stokkeluar::where('created_by', Auth::id())
+        $stokKeluarHariIni = Data_stokkeluar::where('created_by', $userId)
             ->where('status', 'posted')
             ->whereDate('tanggal_keluar', Carbon::today())
             ->count();
 
-        $stokCancel = Data_stokkeluar::where('created_by', Auth::id())
+        $stokCancel = Data_stokkeluar::where('created_by', $userId)
             ->where('status', 'cancelled')
             ->count();
 
         // =========================
-        // KEMARIN (UNTUK PERSENTASE)
+        // KEMARIN (GLOBAL, karena produk global)
         // =========================
-        $produkKemarin = Data_produk::whereDate('created_at', Carbon::yesterday())
-            ->count();
+        $produkKemarin = Data_produk::whereDate('created_at', Carbon::yesterday())->count();
 
-        // =========================
-        // HITUNG PERSENTASE PRODUK
-        // =========================
-        $persenProduk = $produkKemarin > 0
-            ? round((($produkHariini - $produkKemarin) / $produkKemarin) * 100, 1)
-            : 0;
+        if ($produkKemarin == 0 && $produkHariini == 0) {
+            $persenProduk = 0;
+        } elseif ($produkKemarin == 0 && $produkHariini > 0) {
+            $persenProduk = 100; // growth baru
+        } elseif ($produkHariini == 0) {
+            $persenProduk = 0; // 🔥 bukan -100%
+        } else {
+            $persenProduk = round((($produkHariini - $produkKemarin) / $produkKemarin) * 100, 1);
+        }
 
         return view('dashboard', compact(
             'produkAll',
@@ -96,25 +104,25 @@ class BerandaController extends Controller
             ->count();
     }
 
-    private function getTotalStokMasuk()
+    private function getTotalStokMasuk($userId)
     {
-        return Data_stokmasuk::where('status', 'posted')
-            // ->where('created_by', Auth::id())
+        return Data_stokmasuk::where('created_by', $userId)
+            ->where('status', 'posted')
             ->count();
     }
 
-    private function getTotalStokKeluar()
+    private function getTotalStokKeluar($userId)
     {
-        return Data_stokkeluar::where('status', 'posted')
-            ->where('created_by', Auth::id())
+        return Data_stokkeluar::where('created_by', $userId)
+            ->where('status', 'posted')
             ->count();
     }
 
-    private function getRecentActivities()
+    private function getRecentActivities($userId)
     {
-        return Data_stokkeluar::with(['produk', 'creator.dataDiri'])
-            ->where('created_by', Auth::id())
-            ->latest()
+        return Data_kartustok::with(['produk', 'user.dataDiri'])
+            ->where('user_id', $userId)
+            ->orderByDesc('tanggal')
             ->take(5)
             ->get();
     }
@@ -122,38 +130,34 @@ class BerandaController extends Controller
     /**
      * Persiapkan data untuk Attendance Trend Chart (Line Chart)
      */
-    private function prepareAttendanceChart(&$attendanceLabels, &$attendanceData, &$attendancePercentage)
+    private function prepareAttendanceChart(&$attendanceLabels, &$attendanceData, &$attendancePercentage, $userId)
     {
         $last7Days = collect(range(0, 6))
             ->map(fn($i) => Carbon::now()->subDays($i))
             ->reverse();
 
-        // Ambil data stok keluar per tanggal (user sendiri)
         $kartustok = Data_stokkeluar::select(
             DB::raw('DATE(tanggal_keluar) as tanggal'),
             DB::raw('COUNT(*) as total')
         )
-            ->where('created_by', Auth::id())
+            ->where('created_by', $userId)
             ->where('tanggal_keluar', '>=', Carbon::now()->subDays(6))
             ->groupBy('tanggal')
             ->pluck('total', 'tanggal');
 
-        // Labels (Sen, Sel, Rab, dst)
         $attendanceLabels = $last7Days
             ->map(fn($date) => $date->translatedFormat('D'))
             ->values()
             ->toArray();
 
-        // Data jumlah transaksi per hari
         $attendanceData = $last7Days
             ->map(fn($date) => (int) ($kartustok[$date->format('Y-m-d')] ?? 0))
             ->values()
             ->toArray();
 
-        // Hitung persentase attendance (opsional)
         $totalTransactions = array_sum($attendanceData);
         $averageDaily      = $totalTransactions / 7;
-        $targetPerDay      = 50; // sesuaikan dengan target bisnis kamu
+        $targetPerDay      = 50;
 
         $attendancePercentage = $targetPerDay > 0
             ? round(($averageDaily / $targetPerDay) * 100, 1)
@@ -163,10 +167,10 @@ class BerandaController extends Controller
     /**
      * Persiapkan data untuk Status Stok Keluar (Doughnut Chart)
      */
-    private function prepareProductionChart(&$productionData, &$productionStats)
+    private function prepareProductionChart(&$productionData, &$productionStats, $userId)
     {
         $keluar = Data_stokkeluar::select('status', DB::raw('COUNT(*) as total'))
-            ->where('created_by', Auth::id())
+            ->where('created_by', $userId)
             ->groupBy('status')
             ->pluck('total', 'status');
 

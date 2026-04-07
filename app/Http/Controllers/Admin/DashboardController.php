@@ -9,6 +9,7 @@ use App\Models\Admin\Master\Data_stokmasuk;
 use Illuminate\Http\Request;
 use App\Models\Data_produk;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -29,56 +30,53 @@ class DashboardController extends Controller
 
     private function getStats(): array
     {
-        // =========================
-        // TOTAL
-        // =========================
-        $produkAll = Data_produk::where('status', 'aktif')->count();
-        $ttlMasuk = Data_stokmasuk::where('status', 'posted')->count();
-        $ttlKeluar = Data_stokkeluar::where('status', 'posted')->count();
-        $stokCancel = Data_stokkeluar::where('status', 'cancelled')->count();
+        $today = Carbon::today();
+        $yesterday = Carbon::yesterday();
 
-        // =========================
-        // HARI INI
-        // =========================
-        $produkHariini = Data_produk::whereDate('created_at', Carbon::today())->count();
+        // PRODUK
+        $produk = Data_produk::selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN DATE(created_at) = ? THEN 1 ELSE 0 END) as hari_ini,
+            SUM(CASE WHEN DATE(created_at) = ? THEN 1 ELSE 0 END) as kemarin
+        ", [$today, $yesterday])->first();
 
-        $stokMasukHariIni = Data_stokmasuk::where('status', 'posted')
-            ->whereDate('tanggal_masuk', Carbon::today())
-            ->count();
+        // STOK MASUK
+        $stokMasuk = Data_stokmasuk::selectRaw("
+            COUNT(CASE WHEN status = 'posted' THEN 1 END) as total,
+            COUNT(CASE WHEN status = 'posted' AND DATE(tanggal_masuk) = ? THEN 1 END) as hari_ini
+        ", [$today])->first();
 
-        $stokKeluarHariIni = Data_stokkeluar::where('status', 'posted')
-            ->whereDate('tanggal_keluar', Carbon::today())
-            ->count();
+        // STOK KELUAR
+        $stokKeluar = Data_stokkeluar::selectRaw("
+            COUNT(CASE WHEN status = 'posted' THEN 1 END) as total,
+            COUNT(CASE WHEN status = 'posted' AND DATE(tanggal_keluar) = ? THEN 1 END) as hari_ini,
+            COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled
+        ", [$today])->first();
 
-        // =========================
-        // KEMARIN (UNTUK PERSENTASE)
-        // =========================
-        $produkKemarin = Data_produk::whereDate('created_at', Carbon::yesterday())->count();
+        // HITUNG PERSEN
+        $produkHariini = $produk->hari_ini;
+        $produkKemarin = $produk->kemarin;
 
-        // =========================
-        // HITUNG PERSENTASE PRODUK
-        // =========================
         if ($produkKemarin == 0 && $produkHariini == 0) {
             $persenProduk = 0;
-        } elseif ($produkKemarin == 0 && $produkHariini > 0) {
-            $persenProduk = 100; // growth baru
+        } elseif ($produkKemarin == 0) {
+            $persenProduk = 100;
         } elseif ($produkHariini == 0) {
-            $persenProduk = 0; // 🔥 bukan -100%
+            $persenProduk = 0;
         } else {
             $persenProduk = round((($produkHariini - $produkKemarin) / $produkKemarin) * 100, 1);
         }
 
         return [
-            'produkAll' => $produkAll,
-            'ttlMasuk' => $ttlMasuk,
-            'ttlKeluar' => $ttlKeluar,
-            'stokCancel' => $stokCancel,
+            'produkAll' => $produk->total,
+            'ttlMasuk' => $stokMasuk->total,
+            'ttlKeluar' => $stokKeluar->total,
+            'stokCancel' => $stokKeluar->cancelled,
 
             'produkHariini' => $produkHariini,
-            'stokMasukHariIni' => $stokMasukHariIni,
-            'stokKeluarHariIni' => $stokKeluarHariIni,
+            'stokMasukHariIni' => $stokMasuk->hari_ini,
+            'stokKeluarHariIni' => $stokKeluar->hari_ini,
 
-            // persen
             'persenProduk' => $persenProduk,
         ];
     }
@@ -86,12 +84,30 @@ class DashboardController extends Controller
     private function getRecentTransaksi(): array
     {
         return [
-            'recentTransaksi' => Data_kartustok::with(['produk', 'user.dataDiri'])
-                ->ownedByUser()
-                ->latest()
-                ->limit(5)
-                ->get()
+            'recentTransaksi' => $this->queryRecentTransaksi()
         ];
+    }
+
+    private function queryRecentTransaksi()
+    {
+        return Data_kartustok::query()
+            ->with([
+                'produk:id,nama_produk,kode_produk',
+                'user:id,username',
+                'user.dataDiri:user_id,foto_diri'
+            ])
+            ->ownedByUser()
+            ->latest()
+            ->limit(5)
+            ->get([
+                'id',
+                'produk_id',
+                'user_id',
+                'qty',
+                'tipe',
+                'keterangan',
+                'created_at'
+            ]);
     }
 
     private function getAttendance(): array
@@ -165,11 +181,11 @@ class DashboardController extends Controller
 
     private function getActivityAjax()
     {
-        $recentTransaksi = Data_kartustok::with(['produk', 'user.dataDiri'])
-            ->ownedByUser()
-            ->latest()
-            ->limit(5)
-            ->get();
+        $cacheKey = 'activity_' . Auth::id();
+
+        $recentTransaksi = cache()->remember($cacheKey, 10, function () {
+            return $this->queryRecentTransaksi();
+        });
 
         return response()->json([
             'html' => view('admin.dashboard.activity-table', compact('recentTransaksi'))->render()

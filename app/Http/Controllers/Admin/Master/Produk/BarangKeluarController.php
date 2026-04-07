@@ -18,19 +18,24 @@ class BarangKeluarController extends Controller
             'produk_id' => 'required|exists:data_produks,id'
         ]);
 
-        $transaksi = Data_stokkeluar::create([
-            'kode_transaksi' => $this->generateKode(),
-            'produk_id' => $request->produk_id,
-            'jumlah' => 0,
-            'tanggal_keluar' => now(),
-            'status' => 'draft',
-            'created_by' => Auth::user()->id,
-        ]);
+        return DB::transaction(function () use ($request) {
 
-        return response()->json([
-            'success' => true,
-            'data' => $transaksi
-        ]);
+            $kode = $this->generateKode(); // sudah lock di dalam
+
+            $transaksi = Data_stokkeluar::create([
+                'kode_transaksi' => $kode,
+                'produk_id' => $request->produk_id,
+                'jumlah' => 0,
+                'tanggal_keluar' => now(),
+                'status' => 'draft',
+                'created_by' => Auth::id(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $transaksi
+            ]);
+        });
     }
 
     private function generateKode()
@@ -87,24 +92,28 @@ class BarangKeluarController extends Controller
                 }
 
                 /*
-            VALIDASI STOK
-            */
+                    VALIDASI STOK
+                */
                 if ($validated['status'] === 'posted') {
 
-                    if ($validated['jumlah'] > $produk->stok) {
+                    $affected = Data_produk::where('id', $produk->id)
+                        ->where('stok', '>=', $validated['jumlah'])
+                        ->decrement('stok', $validated['jumlah']);
+
+                    if (!$affected) {
                         return response()->json([
                             'success' => false,
                             'message' => 'Stok tidak mencukupi'
                         ], 422);
                     }
 
-                    // ✅ Catat user yang POST
-                    $validated['posted_by'] = Auth::user()->id;
+                    $validated['posted_by'] = Auth::id();
                 }
 
+
                 /*
-            UPDATE DATA
-            */
+                    UPDATE DATA
+                */
                 $stokKeluar->update($validated);
 
                 return response()->json([
@@ -126,20 +135,23 @@ class BarangKeluarController extends Controller
 
     public function destroy($id)
     {
-        $stokKeluar = Data_stokkeluar::findOrFail($id);
+        return DB::transaction(function () use ($id) {
 
-        if ($stokKeluar->status !== 'draft') {
+            $stokKeluar = Data_stokkeluar::lockForUpdate()->findOrFail($id);
+
+            if ($stokKeluar->status !== 'draft') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Hanya transaksi DRAFT yang boleh dihapus'
+                ], 422);
+            }
+
+            $stokKeluar->delete();
+
             return response()->json([
-                'success' => false,
-                'message' => 'Hanya transaksi DRAFT yang boleh dihapus'
-            ], 422);
-        }
-
-        $stokKeluar->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Data berhasil dihapus'
-        ]);
+                'success' => true,
+                'message' => 'Data berhasil dihapus'
+            ]);
+        });
     }
 }

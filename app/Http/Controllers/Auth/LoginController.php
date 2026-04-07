@@ -7,7 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 
 class LoginController extends Controller
@@ -19,83 +19,112 @@ class LoginController extends Controller
 
     public function store(Request $request)
     {
+        /* =====================
+            VALIDASI
+        ===================== */
+
         $request->validate([
-            'username' => 'required',
-            'password' => 'required'
+            'username' => 'required|string|max:255',
+            'password' => 'required|string',
         ]);
 
-        $user = User::with('roles')
-            ->where('username', $request->username)
-            ->orWhere('email', $request->username)
-            ->first();
+        // Normalisasi input
+        $login = trim(strtolower($request->username));
 
-        if (!$user) {
+        /* =====================
+             RATE LIMIT (ANTI BRUTE FORCE)
+        ===================== */
+
+        $key = 'login:' . $login . '|' . $request->ip();
+
+        if (RateLimiter::tooManyAttempts($key, 5)) {
             return back()->withErrors([
-                'username' => 'User tidak ditemukan.'
+                'username' => 'Terlalu banyak percobaan login. Coba lagi nanti.'
+            ]);
+        }
+
+        /* =====================
+            DETEKSI FIELD LOGIN
+        ===================== */
+
+        $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        /* =====================
+            ATTEMPT LOGIN (AMAN)
+        ===================== */
+
+        $credentials = [
+            $field => $login,
+            'password' => $request->password
+        ];
+
+        if (!Auth::attempt($credentials, $request->boolean('remember'))) {
+
+            RateLimiter::hit($key, 60); // block 60 detik
+
+            return back()->withErrors([
+                'username' => 'Login gagal. Periksa kembali kredensial.'
             ])->withInput();
         }
 
-        if (!Hash::check($request->password, $user->password)) {
-            return back()->withErrors([
-                'password' => 'Password salah.'
-            ])->withInput();
-        }
+        // Login sukses → reset limiter
+        RateLimiter::clear($key);
 
-        // 🚨 Pastikan user punya role
+        $request->session()->regenerate();
+
+        /** @var User $user */
+        $user = Auth::user();
+
+        /* =====================
+            VALIDASI USER
+        ===================== */
+
         $user->ensureRole();
 
         if (!$this->canUserLogin($user)) {
+
+            Auth::logout();
+
             return redirect()->route('login')
                 ->with('account_disabled', true)
-                ->with('disabled_message', 'Akun Anda telah dinonaktifkan oleh Admin.')
-                ->withInput();
+                ->with('disabled_message', 'Akun dinonaktifkan.');
         }
 
-        // Reset session lama
-        if (Auth::check()) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-        }
-
-        Auth::login($user, $request->boolean('remember'));
-        $request->session()->regenerate();
+        /* =====================
+            UPDATE STATUS
+        ===================== */
 
         $user->update([
             'is_online' => true,
             'last_login' => now(),
         ]);
 
-        // Remember username
+        /* =====================
+            COOKIE REMEMBER USERNAME
+        ===================== */
+
         if ($request->boolean('remember')) {
-            Cookie::queue('remember_username', $request->username, 43200);
+            Cookie::queue('remember_username', $login, 43200);
         } else {
             Cookie::queue(Cookie::forget('remember_username'));
         }
 
-        // 🎯 Ambil role
+        /* =====================
+            ROLE CHECK
+        ===================== */
+
         $role = $user->getPrimaryRole();
 
-        if (!$role) {
+        if (!$role || !Route::has($role . '.dashboard')) {
+
             Auth::logout();
 
             return redirect()->route('login')
-                ->withErrors(['role' => 'User tidak memiliki role']);
+                ->withErrors(['role' => 'Akses tidak valid']);
         }
-
-        // 🚀 Redirect dinamis
-        if (!Route::has($role . '.dashboard')) {
-            Auth::logout();
-
-            return redirect()->route('login')
-                ->withErrors(['role' => 'Route tidak ditemukan untuk role: ' . $role]);
-        }
-
-        // dd($user->roles->pluck('name'), $user->getPrimaryRole());
 
         return redirect()->route($role . '.dashboard');
     }
-
 
     protected function canUserLogin(User $user): bool
     {

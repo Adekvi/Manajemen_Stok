@@ -7,6 +7,7 @@ use App\Models\Admin\Master\Data_stokkeluar;
 use App\Models\Data_produk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class KeluarController extends Controller
 {
@@ -78,49 +79,41 @@ class KeluarController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
-        $item = Data_stokkeluar::findOrFail($id);
+        return DB::transaction(function () use ($request, $id) {
 
-        $statusBaru = $request->status;
-        $statusSekarang = $item->status;
+            $item = Data_stokkeluar::lockForUpdate()->findOrFail($id);
 
-        // VALIDASI STATUS
-        if ($statusSekarang == 'posted') {
+            $statusBaru = $request->status;
+            $statusSekarang = $item->status;
 
-            if ($statusBaru != 'cancelled') {
+            if ($statusSekarang === 'posted' && $statusBaru !== 'cancelled') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Status yang sudah diposting hanya bisa diubah menjadi Cancelled.'
+                    'message' => 'Hanya bisa ke Cancelled'
                 ], 400);
             }
-        }
 
-        if ($statusSekarang == 'cancelled') {
+            if ($statusSekarang === 'cancelled') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak bisa diubah lagi'
+                ], 400);
+            }
+
+            $item->status = $statusBaru;
+
+            if (in_array($statusBaru, ['posted', 'cancelled'])) {
+                $item->posted_by = Auth::id();
+            } else {
+                $item->posted_by = null;
+            }
+
+            $item->save();
 
             return response()->json([
-                'success' => false,
-                'message' => 'Transaksi yang sudah Cancel tidak dapat diubah lagi.'
-            ], 400);
-        }
-
-        // UPDATE STATUS
-        $item->status = $statusBaru;
-
-        // ✅ Isi posted_by saat POSTED / CANCELLED
-        if (in_array($statusBaru, ['posted', 'cancelled'])) {
-            $item->posted_by = Auth::id();
-        }
-
-        // ❗ Optional: kalau balik ke draft, kosongkan lagi
-        if ($statusBaru === 'draft') {
-            $item->posted_by = null;
-        }
-
-        $item->save();
-
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Status berhasil diperbarui'
-        ]);
+                'success' => true,
+                'message' => 'Status berhasil diperbarui'
+            ]);
+        });
     }
 }

@@ -57,51 +57,64 @@ class BrgKeluarController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
-        $item = Data_stokkeluar::ownedByUser()
-            ->findOrFail($id);
+        $request->validate([
+            'status' => 'required|in:draft,posted,cancelled',
+        ]);
 
-        $statusBaru = $request->status;
-        $statusSekarang = $item->status;
+        return DB::transaction(function () use ($request, $id) {
 
-        // VALIDASI STATUS
-        if ($statusSekarang == 'posted') {
+            $item = Data_stokkeluar::ownedByUser()
+                ->lockForUpdate()
+                ->findOrFail($id);
 
-            if ($statusBaru != 'cancelled') {
+            $statusLama = $item->status;
+            $statusBaru = $request->status;
+
+            if ($statusLama === 'cancelled') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Status yang sudah diposting hanya bisa diubah menjadi Cancelled.'
+                    'message' => 'Tidak bisa diubah lagi'
                 ], 400);
             }
-        }
 
-        if ($statusSekarang == 'cancelled') {
+            if ($statusLama === 'posted' && $statusBaru !== 'cancelled') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Hanya bisa ke Cancelled'
+                ], 400);
+            }
+
+            /*
+        HANDLE STOCK
+        */
+            if ($statusLama === 'draft' && $statusBaru === 'posted') {
+
+                $affected = Data_produk::where('id', $item->produk_id)
+                    ->where('stok', '>=', $item->jumlah)
+                    ->decrement('stok', $item->jumlah);
+
+                if (!$affected) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Stok tidak cukup'
+                    ], 422);
+                }
+            }
+
+            if ($statusLama === 'posted' && $statusBaru === 'cancelled') {
+                Data_produk::where('id', $item->produk_id)
+                    ->increment('stok', $item->jumlah);
+            }
+
+            $item->status = $statusBaru;
+            $item->posted_by = in_array($statusBaru, ['posted', 'cancelled']) ? Auth::id() : null;
+            $item->save();
 
             return response()->json([
-                'success' => false,
-                'message' => 'Transaksi yang sudah Cancel tidak dapat diubah lagi.'
-            ], 400);
-        }
-
-        // UPDATE STATUS
-        $item->status = $statusBaru;
-
-        // ✅ Isi posted_by saat POSTED / CANCELLED
-        if (in_array($statusBaru, ['posted', 'cancelled'])) {
-            $item->posted_by = Auth::id();
-        }
-
-        // ❗ Optional: kalau balik ke draft, kosongkan lagi
-        if ($statusBaru === 'draft') {
-            $item->posted_by = null;
-        }
-
-        $item->save();
-
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Status berhasil diperbarui'
-        ]);
+                'success' => true,
+                'message' => 'Status berhasil diperbarui'
+            ]);
+        });
     }
 
     public function store(Request $request)
@@ -128,17 +141,16 @@ class BrgKeluarController extends Controller
     public function update(Request $request, $id)
     {
         try {
-
             return DB::transaction(function () use ($request, $id) {
 
                 $stokKeluar = Data_stokkeluar::ownedByUser()
+                    ->lockForUpdate()
                     ->findOrFail($id);
 
-                // ❌ Tidak boleh ubah jika sudah POSTED
-                if ($stokKeluar->status === 'posted') {
+                if ($stokKeluar->status === 'cancelled') {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Transaksi yang sudah POSTED tidak boleh diubah'
+                        'message' => 'Transaksi sudah CANCELLED'
                     ], 422);
                 }
 
@@ -149,39 +161,87 @@ class BrgKeluarController extends Controller
                     'status' => 'required|in:draft,posted,cancelled',
                 ]);
 
-                $produk = Data_produk::lockForUpdate()->find($stokKeluar->produk_id);
-
-                if (!$produk) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Produk tidak ditemukan'
-                    ], 404);
-                }
+                $statusLama = $stokKeluar->status;
+                $statusBaru = $validated['status'];
 
                 /*
-            VALIDASI STOK
+            =====================
+            CASE 1: DRAFT → POSTED
+            =====================
             */
-                if ($validated['status'] === 'posted') {
+                if ($statusLama === 'draft' && $statusBaru === 'posted') {
 
-                    if ($validated['jumlah'] > $produk->stok) {
+                    $affected = Data_produk::where('id', $stokKeluar->produk_id)
+                        ->where('stok', '>=', $validated['jumlah'])
+                        ->decrement('stok', $validated['jumlah']);
+
+                    if (!$affected) {
                         return response()->json([
                             'success' => false,
                             'message' => 'Stok tidak mencukupi'
                         ], 422);
                     }
 
-                    // ✅ Catat user yang POST
-                    $validated['posted_by'] = Auth::user()->id;
+                    $validated['posted_by'] = Auth::id();
                 }
 
                 /*
-            UPDATE DATA
+            =====================
+            CASE 2: POSTED → POSTED
+            =====================
             */
+                if ($statusLama === 'posted' && $statusBaru === 'posted') {
+
+                    $selisih = $validated['jumlah'] - $stokKeluar->jumlah;
+
+                    if ($selisih > 0) {
+                        $affected = Data_produk::where('id', $stokKeluar->produk_id)
+                            ->where('stok', '>=', $selisih)
+                            ->decrement('stok', $selisih);
+
+                        if (!$affected) {
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Stok tidak mencukupi'
+                            ], 422);
+                        }
+                    } elseif ($selisih < 0) {
+                        Data_produk::where('id', $stokKeluar->produk_id)
+                            ->increment('stok', abs($selisih));
+                    }
+                }
+
+                /*
+            =====================
+            CASE 3: POSTED → CANCELLED
+            =====================
+            */
+                if ($statusLama === 'posted' && $statusBaru === 'cancelled') {
+
+                    Data_produk::where('id', $stokKeluar->produk_id)
+                        ->increment('stok', $stokKeluar->jumlah);
+
+                    $validated['posted_by'] = Auth::id();
+                }
+
+                /*
+            =====================
+            CASE 4: POSTED → DRAFT
+            =====================
+            */
+                if ($statusLama === 'posted' && $statusBaru === 'draft') {
+
+                    Data_produk::where('id', $stokKeluar->produk_id)
+                        ->increment('stok', $stokKeluar->jumlah);
+
+                    $validated['posted_by'] = null;
+                }
+
                 $stokKeluar->update($validated);
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Transaksi berhasil diperbarui',
+                    'message' => 'Berhasil update',
                     'data' => $stokKeluar
                 ]);
             });

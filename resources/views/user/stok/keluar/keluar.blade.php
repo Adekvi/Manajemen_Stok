@@ -763,32 +763,32 @@
 
                         const statusEl = document.getElementById("data-status-text");
 
-                        if (selectedProduk.produk?.stok < 0) {
+                        if (selectedProduk.stok < 0) {
                             stokEl.innerHTML = `
                                 <span class="flex items-center gap-2 text-red-700 dark:text-red-500 font-semibold">
                                     <i data-lucide="alert-octagon" class="w-4 h-4"></i>
-                                    ${selectedProduk.produk?.stok} - Stok minus
+                                    ${selectedProduk.stok} - Stok minus
                                 </span>
                             `;
-                        } else if (selectedProduk.produk?.stok === 0) {
+                        } else if (selectedProduk.stok === 0) {
                             stokEl.innerHTML = `
                                 <span class="flex items-center gap-2 text-red-600">
                                     <i data-lucide="x-circle" class="w-4 h-4"></i>
-                                    ${selectedProduk.produk?.stok} - Stok habis
+                                    ${selectedProduk.stok} - Stok habis
                                 </span>
                             `;
-                        } else if (selectedProduk.produk?.stok < 10) {
+                        } else if (selectedProduk.stok < 10) {
                             stokEl.innerHTML = `
                                 <span class="flex items-center gap-2 text-orange-600">
                                     <i data-lucide="alert-triangle" class="w-4 h-4"></i>
-                                    ${selectedProduk.produk?.stok} - Stok hampir habis
+                                    ${selectedProduk.stok} - Stok hampir habis
                                 </span>
                             `;
                         } else {
                             stokEl.innerHTML = `
                                 <span class="flex items-center gap-2 text-green-600">
                                     <i data-lucide="check-circle" class="w-4 h-4"></i>
-                                    ${selectedProduk.produk?.stok} - Stok aman
+                                    ${selectedProduk.stok} - Stok aman
                                 </span>
                             `;
                         }

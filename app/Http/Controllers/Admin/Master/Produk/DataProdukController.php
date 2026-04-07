@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Data_produk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class DataProdukController extends Controller
 {
@@ -28,7 +30,11 @@ class DataProdukController extends Controller
 
             $file = $request->file('foto_produk');
 
-            $namaFile = time() . '_' . $file->getClientOriginalName();
+            $namaFile = time() . '_' . Str::uuid() . '.' . $file->extension();
+
+            if (!File::exists(public_path('produk'))) {
+                File::makeDirectory(public_path('produk'), 0755, true);
+            }
 
             $file->move(public_path('produk/'), $namaFile);
 
@@ -72,7 +78,12 @@ class DataProdukController extends Controller
                     }
 
                     $file = $request->file('foto_produk');
-                    $namaFile = time() . '_' . $file->getClientOriginalName();
+                    $namaFile = time() . '_' . Str::uuid() . '.' . $file->extension();
+
+                    if (!File::exists(public_path('produk'))) {
+                        File::makeDirectory(public_path('produk'), 0755, true);
+                    }
+
                     $file->move(public_path('produk/'), $namaFile);
 
                     $validated['foto_produk'] = $namaFile;

@@ -57,30 +57,31 @@ class BarangMasukController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            return DB::transaction(function () use ($request, $id) {
+                $stokMasuk = Data_stokmasuk::findOrFail($id);
 
-            $stokMasuk = Data_stokmasuk::findOrFail($id);
+                if ($stokMasuk->status === 'posted') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Transaksi yang sudah POSTED tidak boleh diubah'
+                    ], 422);
+                }
 
-            if ($stokMasuk->status === 'posted') {
+                $validated = $request->validate([
+                    'jumlah' => 'required|integer|min:1',
+                    'tanggal_masuk' => 'required|date',
+                    'keterangan' => 'nullable|string|max:255',
+                    'status' => 'required|in:draft,posted,cancelled',
+                ]);
+
+                $stokMasuk->update($validated);
+
                 return response()->json([
-                    'success' => false,
-                    'message' => 'Transaksi yang sudah POSTED tidak boleh diubah'
-                ], 422);
-            }
-
-            $validated = $request->validate([
-                'jumlah' => 'required|integer|min:1',
-                'tanggal_masuk' => 'required|date',
-                'keterangan' => 'nullable|string|max:255',
-                'status' => 'required|in:draft,posted,cancelled',
-            ]);
-
-            $stokMasuk->update($validated);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Transaksi berhasil diperbarui',
-                'data' => $stokMasuk
-            ]);
+                    'success' => true,
+                    'message' => 'Transaksi berhasil diperbarui',
+                    'data' => $stokMasuk
+                ]);
+            });
         } catch (\Exception $e) {
 
             Log::error($e->getMessage());
